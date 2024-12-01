@@ -94,7 +94,7 @@ func Validate(response string) bool {
 }
 
 func (vp validationSpec) nonceValidator() bool {
-	task := TaskGenerator(vp.requestID, vp.requestTime)
+	task := Task(vp.requestID, vp.requestTime)
 
 	hash := sha256.New()
 	hash.Write([]byte(fmt.Sprintf("%s%d", task, vp.nonce)))

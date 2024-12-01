@@ -1,52 +1,54 @@
 package main
 
 import (
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"math/rand"
 	"strconv"
 	"strings"
+	"time"
 )
 
 const defaultRandomNonce = 1000000
 
-type Task struct {
-	version       int
-	difficulty    int
-	collapsedTine string
-	requestHash   string
-}
+var ErrInvalidTaskFormat = errors.New("invalid task format")
 
-func solve(task string) string {
+func solve(task string) (string, error) {
 	taskParams := strings.Split(task, ":")
-	//
-	//if len(taskParams) == 4 {
-	//	return "" // invalid task format
-	//}
-	//
-	//t := Task{
-	//	collapsedTine: taskParams[3],
-	//	requestHash:   taskParams[3],
-	//}
-	//
-	//ver, err := strconv.Atoi(taskParams[0])
-	//if err != nil {
-	//	return "" // invalid task format
-	//}
 
 	difficulty, err := strconv.Atoi(taskParams[1])
 	if err != nil {
-		return "" // invalid task format
+		return "", ErrInvalidTaskFormat // invalid task format
 	}
 
-	nonce := findNonce(task, difficulty)
+	collapsedTime, err := strconv.ParseInt(taskParams[2], 10, 64)
+	if err != nil {
+		return "", ErrInvalidTaskFormat // invalid response format
+	}
 
-	return composeResponse(task, nonce)
+	ctx, cancel := context.WithDeadline(context.Background(), time.Unix(collapsedTime, 0))
+	defer cancel()
 
+	resCh := make(chan int64, 1)
+
+	go func() {
+		i := findNonce(task, difficulty)
+		resCh <- i
+		close(resCh)
+	}()
+
+	select {
+	case res := <-resCh:
+		return composeResponse(task, res), nil
+	case <-ctx.Done():
+		return "", ctx.Err() // collapsedTime
+	}
 }
 
-func findNonce(task string, difficulty int) int {
+func findNonce(task string, difficulty int) int64 {
 	nonce := rand.Intn(defaultRandomNonce)
 
 	for {
@@ -57,7 +59,7 @@ func findNonce(task string, difficulty int) int {
 		if hash[:difficulty] == strings.Repeat("0", difficulty) {
 			fmt.Println(hash)
 
-			return nonce
+			return int64(nonce)
 		}
 
 		h.Reset()
@@ -65,9 +67,6 @@ func findNonce(task string, difficulty int) int {
 	}
 }
 
-func composeResponse(task string, nonce int) string {
-	//h := sha256.New()
-	//h.Write([]byte(fmt.Sprintf("%s:%s", task, strconv.Itoa(nonce))))
-	//fmt.Println(hex.EncodeToString(h.Sum(nil)))
-	return fmt.Sprintf("%s:%s", task, strconv.Itoa(nonce))
+func composeResponse(task string, nonce int64) string {
+	return fmt.Sprintf("%s:%d", task, nonce)
 }

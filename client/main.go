@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"net"
+	"strings"
 	"time"
 )
 
@@ -19,24 +20,60 @@ func main() {
 	}
 	defer conn.Close()
 
-	data := []byte("Hello, Server!\n")
+	requestTime := time.Now().Unix()
+	data := []byte(fmt.Sprintf("%s::%d::%d\n", "/get_task", 1236, requestTime))
 	_, err = conn.Write(data)
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println(err)
+
 		return
 	}
-
-	fmt.Println("message sent")
+	fmt.Println("task requested")
 
 	reader := bufio.NewReader(conn)
 
+	task := ""
 	for {
-		message, err := reader.ReadString('\n')
+		task, err = reader.ReadString('\n')
 		if err != nil {
 			// log error
 			return
 		}
-		fmt.Println(message)
+		fmt.Println(task)
+
+		break
+	}
+	fmt.Println("task got")
+
+	solution := ""
+	if strings.Trim(task, " ") != "" {
+		solution, err = solve(task)
+		if err != nil {
+			fmt.Println(err) // TODO запросить еще одну таску
+
+			return
+		}
+	}
+
+	data = []byte(fmt.Sprintf("%s::%s\n", "/solution", solution))
+	_, err = conn.Write(data)
+	if err != nil {
+		fmt.Println(err)
+
+		return
+	}
+
+	fmt.Println("solution sent")
+
+	response := ""
+	for {
+		response, err = reader.ReadString('\n')
+		if err != nil {
+			// log error
+			return
+		}
+		fmt.Println(response)
+
 		break
 	}
 

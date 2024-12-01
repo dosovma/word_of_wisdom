@@ -24,7 +24,7 @@ const (
 	taskRule = "%d:%d:%d:%d:%d:%s"
 )
 
-func TaskGenerator(requestID int64, requestTime int64) string {
+func Task(requestID int64, requestTime int64) string {
 	s, collapsedTime := signature(requestID, requestTime, difficulty)
 
 	return fmt.Sprintf(taskRule, V1, difficulty, requestID, requestTime, collapsedTime, s)

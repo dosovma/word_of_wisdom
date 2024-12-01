@@ -26,7 +26,7 @@ func Test_taskGenerator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := TaskGenerator(tt.args.requestID, tt.args.requestTime); got != tt.want {
+			if got := Task(tt.args.requestID, tt.args.requestTime); got != tt.want {
 				t.Errorf("taskGenerator() = %v, want %v", got, tt.want)
 			}
 		})
