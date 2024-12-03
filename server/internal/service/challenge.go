@@ -1,9 +1,11 @@
-package app
+package service
 
 import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+
+	"server/internal/service/entity"
 )
 
 const (
@@ -24,13 +26,13 @@ const (
 	taskRule = "%d:%d:%d:%d:%d:%s"
 )
 
-func Task(requestID int64, requestTime int64) string {
-	s, collapsedTime := signature(requestID, requestTime, difficulty)
+func (s *Service) Challenge(r entity.Request) string {
+	signature, collapsedTime := sign(r.ID, r.CreatedAt, difficulty)
 
-	return fmt.Sprintf(taskRule, V1, difficulty, requestID, requestTime, collapsedTime, s)
+	return fmt.Sprintf(taskRule, V1, difficulty, r.ID, r.CreatedAt, collapsedTime, signature)
 }
 
-func signature(requestID int64, requestTime int64, difficulty int) (string, int64) {
+func sign(requestID int64, requestTime int64, difficulty int) (string, int64) {
 	hash := sha256.New()
 	collapsedTime := requestTime + collapsedTimeout
 	s := fmt.Sprintf(signatureRule, masterKey, requestID, requestTime, difficulty, collapsedTime)

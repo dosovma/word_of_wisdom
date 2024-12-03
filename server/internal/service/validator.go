@@ -1,4 +1,4 @@
-package app
+package service
 
 import (
 	"crypto/sha256"
@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"server/internal/service/entity"
 )
 
 // V1 : difficulty : requestID : requestTime : collapsedTime : requestSignature : nonce
@@ -20,10 +22,11 @@ type validationSpec struct {
 	collapsedTime int64
 	signature     string
 	nonce         int64
+	challenge     string
 }
 
-func buildSpec(response string) (*validationSpec, bool) {
-	responseParams := strings.Split(response, ":")
+func buildSpec(solution string) (*validationSpec, bool) {
+	responseParams := strings.Split(solution, ":")
 
 	v, err := strconv.Atoi(responseParams[0])
 	if err != nil {
@@ -66,11 +69,20 @@ func buildSpec(response string) (*validationSpec, bool) {
 	}, true
 }
 
-func Validate(response string) bool {
-	spec, ok := buildSpec(response)
+func (s *Service) Validate(solution string) bool {
+	spec, ok := buildSpec(solution)
 	if !ok {
 		return false
 	}
+
+	challenge := s.Challenge(
+		entity.Request{
+			ID:        spec.requestID,
+			CreatedAt: spec.requestTime,
+		},
+	)
+
+	spec.challenge = challenge
 
 	var validations []func() bool
 	switch spec.version {
@@ -94,17 +106,15 @@ func Validate(response string) bool {
 }
 
 func (vp validationSpec) nonceValidator() bool {
-	task := Task(vp.requestID, vp.requestTime)
-
 	hash := sha256.New()
-	hash.Write([]byte(fmt.Sprintf("%s%d", task, vp.nonce)))
+	hash.Write([]byte(fmt.Sprintf("%s%d", vp.challenge, vp.nonce)))
 	res := hex.EncodeToString(hash.Sum(nil))
 
 	return res[:vp.difficulty] == strings.Repeat("0", vp.difficulty)
 }
 
 func (vp validationSpec) signatureValidator() bool {
-	requestSignature, _ := signature(vp.requestID, vp.requestTime, vp.difficulty)
+	requestSignature, _ := sign(vp.requestID, vp.requestTime, vp.difficulty)
 	return vp.signature == requestSignature
 }
 

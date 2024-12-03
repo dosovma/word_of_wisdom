@@ -1,9 +1,13 @@
-package app
+package tcp
 
 import (
 	"fmt"
 	"log"
 	"net"
+)
+
+const (
+	SERVER_PORT = ":9000"
 )
 
 type Server struct {
@@ -12,11 +16,7 @@ type Server struct {
 	handler Handler
 }
 
-const (
-	SERVER_PORT = ":9000"
-)
-
-func New(host string, port string, handler Handler) *Server {
+func NewServer(host string, port string, handler Handler) *Server {
 	return &Server{
 		host:    host,
 		port:    port,

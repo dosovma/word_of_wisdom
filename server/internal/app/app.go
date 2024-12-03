@@ -3,19 +3,19 @@ package app
 import (
 	"fmt"
 
+	"server/internal/api/tcp"
 	"server/internal/config"
 )
 
 func Run() error {
-	fmt.Println("Server starts")
 	cfg, err := config.NewServer()
 	if err != nil {
 		return err
 	}
 
-	handler := Handler{}
+	handler := tcp.Handler{}
 
-	tcpServer := New(cfg.Host, cfg.Port, handler)
+	tcpServer := tcp.NewServer(cfg.Host, cfg.Port, handler)
 	fmt.Println("tcp init")
 
 	return tcpServer.Serve()
