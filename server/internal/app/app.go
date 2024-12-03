@@ -5,6 +5,8 @@ import (
 
 	"server/internal/api/tcp"
 	"server/internal/config"
+	"server/internal/service"
+	"server/internal/storage"
 )
 
 func Run() error {
@@ -13,7 +15,12 @@ func Run() error {
 		return err
 	}
 
-	handler := tcp.Handler{}
+	tokenStorage := storage.NewTokenStorage()
+	quoteStorage := storage.NewQuoteStorage()
+
+	s := service.New(quoteStorage, tokenStorage)
+
+	handler := tcp.NewHandler(s, tokenStorage)
 
 	tcpServer := tcp.NewServer(cfg.Host, cfg.Port, handler)
 	fmt.Println("tcp init")

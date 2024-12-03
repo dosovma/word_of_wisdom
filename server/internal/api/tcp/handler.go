@@ -13,17 +13,17 @@ import (
 	"server/pkg/tcp"
 )
 
-type authStorage interface {
+type tokenStorage interface {
 	Token(tokenID uuid.UUID) entity.Token
 	Store(entity.Token)
 }
 
 type Handler struct {
 	service service.IService
-	auth    authStorage
+	auth    tokenStorage
 }
 
-func NewHandler(service service.IService, storage authStorage) *Handler {
+func NewHandler(service service.IService, storage tokenStorage) *Handler {
 	return &Handler{
 		service: service,
 		auth:    storage,

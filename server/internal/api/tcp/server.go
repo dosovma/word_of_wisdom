@@ -13,10 +13,10 @@ const (
 type Server struct {
 	host    string
 	port    string
-	handler Handler
+	handler *Handler
 }
 
-func NewServer(host string, port string, handler Handler) *Server {
+func NewServer(host string, port string, handler *Handler) *Server {
 	return &Server{
 		host:    host,
 		port:    port,
