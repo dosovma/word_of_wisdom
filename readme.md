@@ -3,12 +3,12 @@
 Test task for Server Engineer
 
 Design and implement “Word of Wisdom” tcp server.
-• TCP server should be protected from DDOS attacks with the Proof of Work (https://en.wikipedia.org/wiki/Proof_of_work),
+- TCP server should be protected from DDOS attacks with the Proof of Work (https://en.wikipedia.org/wiki/Proof_of_work),
 the challenge-response protocol should be used.
-• The choice of the POW algorithm should be explained.
-• After Proof Of Work verification, server should send one of the quotes from “word of wisdom” book or any other
+- The choice of the POW algorithm should be explained.
+- After Proof Of Work verification, server should send one of the quotes from “word of wisdom” book or any other
 collection of the quotes.
-• Docker file should be provided both for the server and for the client that solves the POW challenge
+- Docker file should be provided both for the server and for the client that solves the POW challenge
 
 ### Prerequisites
 
@@ -20,9 +20,13 @@ Installed Docker https://docs.docker.com/engine/install/
 - docker-compose build
 - docker compose up
 
+You will see a logs and quote from world of wisdom.
+
+Client will finish automatically. Server should be stopped by involving CTRL+C.
+
 ### Project description
 
-## The choice of the POW algorithm should be explained
+#### The choice of the POW algorithm should be explained
 
 It was the most difficult issue. I spent a few hours to look into options and compared its.
 
@@ -36,7 +40,7 @@ My choice is Hashcash:
 
 Finally, I see that it's a good fit for assignment
 
-## Algorithm and implementation
+#### Algorithm and implementation
 
 I hadn't had an experience in PoW, so I spent a few hours to understand what PoW is, and to look into implementations.
 
@@ -47,19 +51,25 @@ I wrote project relying on two articles which seemed comprehensive to me:
 
 You can find a lot of ideas from these articles in code.
 
-## Process
+#### Process
 
 Getting random quote is 7 steps process:
 
 1 - Client sends a request to get a token.
+
 2 - Server responses with a challenge.
+
 3 - Client solves challenge and sends a solution to Server.
+
 4 - Server checks if the solution is suitable (there are many different solution for one challenge).
+
 5 - Server responses with token.
+
 6 - Client requests a quote including token into the request.
+
 7 - Server validates token; and a random quote is sent to Client.
 
-## Message format
+#### Message format
 
 Each message has a predefined format.
 
@@ -84,13 +94,13 @@ Payload consists of strings with headers:
 It's just for fun and to provide a little logic and to ensure a sequence in client-server communication.
 Please, don't be rigorous.
 
-## Code decisions that might be unclear
+#### Code decisions that might be unclear
 
 - MasterKey. I decided to use it to provide server stateless. It's seemed to me as a good alternative of storing have
   gotten request in database.
 - Insufficient unit tests. It takes a time, so I wrote a few test to show you that I am skilled in that.
 
-### Features that I implemented in real work
+#### Features that I implemented in real work
 
 - Couple server load with difficulty. It provides evenly distribution of requests.
 - Use hash tree https://www.mdpi.com/1999-4893/16/10/462 Merkle tree https://en.wikipedia.org/wiki/Merkle_tree to access
