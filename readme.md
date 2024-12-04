@@ -22,7 +22,7 @@ Installed Docker https://docs.docker.com/engine/install/
 
 You will see a logs and quote from world of wisdom.
 
-Client will finish automatically. Server should be stopped by involving CTRL+C.
+Client will finish automatically. Server should be stopped by executing CTRL+C.
 
 ### Project description
 
@@ -120,6 +120,6 @@ Please, don't be rigorous.
 - Move /pkg and const that describes message format to a separate github repository; make it public; and start using it
   as `go get github/.../tcp_communicator` in Client and Server.
 - Move a few const to envs: default difficulty, masterKey, timeout.
-- add linter
+- Add linter
 - CI/CD setting like github actions (tests + linter)
-- add entity annotation
+- Add entity annotation
