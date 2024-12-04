@@ -77,7 +77,7 @@ Each message has a predefined format.
 "START:"
 "X-Command":[CommandType]
 Payload
-"END"
+"END:"
 ```
 
 Payload consists of strings with headers:
@@ -123,3 +123,4 @@ Please, don't be rigorous.
 - Add linter
 - CI/CD setting like github actions (tests + linter)
 - Add entity annotation
+- Read and write data into connection using []byte instead of strings. Strings make code more readable, but we shouldn't use it in production.  
