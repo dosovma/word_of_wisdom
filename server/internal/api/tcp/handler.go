@@ -8,37 +8,41 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
 	"server/internal/service"
 	"server/internal/service/entity"
+	"server/pkg/logger"
 	"server/pkg/tcp"
 )
 
 type tokenStorage interface {
-	Token(tokenID uuid.UUID) entity.Token
+	Token(tokenID uuid.UUID) (*entity.Token, error)
 	Store(entity.Token)
 }
 
 type Handler struct {
 	service service.IService
 	auth    tokenStorage
+	log     logger.Logger
 }
 
-func NewHandler(service service.IService, storage tokenStorage) *Handler {
+func NewHandler(service service.IService, storage tokenStorage, log logger.Logger) *Handler {
 	return &Handler{
 		service: service,
 		auth:    storage,
+		log:     log,
 	}
 }
 
 func (h *Handler) Handle(conn net.Conn) {
 	defer func(conn net.Conn) {
 		if err := conn.Close(); err != nil {
-			// log
+			h.log.Printf("failed to close connection: %s\n", err)
 		}
 	}(conn)
 
 	for {
-		msg, err := messageReader(conn)
+		msg, err := readMessage(conn)
 		if err != nil {
 			return // write error
 		}
@@ -139,7 +143,7 @@ func extractRequest(request []string) (*entity.Request, error) {
 	}, nil
 }
 
-func messageReader(conn net.Conn) ([]string, error) {
+func readMessage(conn net.Conn) ([]string, error) {
 	messageSize := 0
 	connReader := bufio.NewReader(conn)
 
@@ -177,7 +181,16 @@ func (h *Handler) Auth(messages []string) bool {
 		return false
 	}
 
-	token := h.auth.Token(tokenID)
+	token, err := h.auth.Token(tokenID)
+	if err != nil {
+		h.log.Printf("failed to get token: %s", err)
+
+		return false
+	}
 
 	return token.ExpiryDate.Before(time.Now())
+}
+
+func isPayload(msg string) bool {
+	return msg != MESSAGE_START && msg != MESSAGE_END
 }

@@ -1,9 +1,9 @@
 package tcp
 
 import (
-	"fmt"
-	"log"
 	"net"
+
+	"server/pkg/logger"
 )
 
 const (
@@ -14,39 +14,42 @@ type Server struct {
 	host    string
 	port    string
 	handler *Handler
+	log     logger.Logger
 }
 
-func NewServer(host string, port string, handler *Handler) *Server {
+func NewServer(host string, port string, handler *Handler, logger logger.Logger) *Server {
 	return &Server{
 		host:    host,
 		port:    port,
 		handler: handler,
+		log:     logger,
 	}
 }
 
 func (s *Server) Serve() error {
 	listener, err := net.Listen("tcp", SERVER_PORT)
 	if err != nil {
+		s.log.Println(err)
 		return err
 	}
 	defer func(listener net.Listener) {
 		err = listener.Close()
 		if err != nil {
-			log.Printf("failed to close listener: %s\n", err)
+			s.log.Printf("failed to close listener: %s\n", err)
 		}
 	}(listener)
 
-	fmt.Printf("listener init, address: %s\n", listener.Addr())
+	s.log.Printf("listener init, address: %s\n", listener.Addr())
 
 	for {
-		fmt.Printf("run listening\n")
 		conn, err := listener.Accept()
-		fmt.Println("connection accepted")
 		if err != nil {
-			fmt.Println("failed to accept connection")
-		}
+			s.log.Printf("failed to accept connection: %s", err)
 
-		// ToDo context?
+			return err
+		}
+		s.log.Println("connection accepted")
+
 		go s.handler.Handle(conn)
 	}
 }

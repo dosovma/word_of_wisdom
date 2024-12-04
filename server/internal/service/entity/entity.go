@@ -16,8 +16,6 @@ type Request struct {
 	CreatedAt int64
 }
 
-type Token uuid.UUID
-
 func GenerateToken() uuid.UUID {
 	return uuid.New()
 }
