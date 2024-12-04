@@ -8,6 +8,6 @@ RUN go mod download && go mod verify
 
 COPY . ./
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o tcpclient .
+RUN CGO_ENABLED=0 GOOS=linux go build -o tcpclient cmd/*
 
 CMD ["./tcpclient"]

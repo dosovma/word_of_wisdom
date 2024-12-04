@@ -46,7 +46,7 @@ services:
 
     # The command to execute once the image is created.
     # The following command will execute "python ./client.py".
-    command: go run main.go
+    command: ./cmd/main.go
 
     # The keyword 'network_mode' is used to define the network type.
     # Here we define that the container can access to the 'localhost' of the computer.

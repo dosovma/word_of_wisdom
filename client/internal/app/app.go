@@ -4,16 +4,19 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
 
 	"client/internal/infrastructure/client"
 	"client/internal/service"
 )
 
 const (
-	SERVER_PORT = ":9000"
+	SERVER_PORT = ":9001"
 )
 
 func Run() error {
+	logger := log.New(os.Stdout, "client:", log.LstdFlags)
+
 	conn, err := net.Dial("tcp", SERVER_PORT)
 	if err != nil {
 		fmt.Println("dial error:", err)
@@ -25,7 +28,7 @@ func Run() error {
 		}
 	}(conn)
 
-	c := client.NewTCPClient(conn)
+	c := client.NewTCPClient(conn, logger)
 
 	s := service.NewService(c)
 

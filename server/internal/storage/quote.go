@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 )
 
 const (
@@ -42,6 +43,8 @@ func NewQuoteStorage() (QuoteStorage, error) {
 
 			return nil, err
 		}
+
+		quote, _ = strings.CutSuffix(quote, "\n")
 
 		storage[quote] = struct{}{}
 	}

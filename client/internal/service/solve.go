@@ -16,6 +16,9 @@ const defaultRandomNonce = 1000000
 
 var ErrInvalidTaskFormat = errors.New("invalid task format")
 
+// version : difficulty : requestID : requestTime : collapsedTime : requestSignature
+const taskRule = "%d:%d:%d:%d:%d:%s"
+
 func solve(task string) (string, error) {
 	taskParams := strings.Split(task, ":")
 
@@ -24,7 +27,7 @@ func solve(task string) (string, error) {
 		return "", ErrInvalidTaskFormat // invalid task format
 	}
 
-	collapsedTime, err := strconv.ParseInt(taskParams[2], 10, 64)
+	collapsedTime, err := strconv.ParseInt(taskParams[4], 10, 64)
 	if err != nil {
 		return "", ErrInvalidTaskFormat // invalid response format
 	}
