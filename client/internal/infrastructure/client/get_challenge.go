@@ -5,7 +5,7 @@ import (
 )
 
 func (c *Client) GetChallenge(requestID, requestTime string) (string, error) {
-	data := []string{COMMAND + CMD_TOKEN, REQUEST_ID + requestID, REQUEST_TIME + requestTime}
+	data := []string{Command + CmdToken, RequestID + requestID, RequestTime + requestTime}
 	if err := c.messenger.Write(c.connection, data); err != nil {
 		return "", err
 	}
@@ -17,7 +17,7 @@ func (c *Client) GetChallenge(requestID, requestTime string) (string, error) {
 	}
 	c.logger.Println("challenge message received")
 
-	challenge, err := tcp.GetDataByHeader(CHALLENGE, messages)
+	challenge, err := tcp.GetDataByHeader(Challenge, messages)
 	if err != nil {
 		return "", err
 	}

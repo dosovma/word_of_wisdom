@@ -39,7 +39,7 @@ func (s *Service) Validate(solution string) bool {
 
 	var validations []func() bool
 	switch spec.version {
-	case V1:
+	case v1:
 		validations = []func() bool{
 			spec.timeValidator,
 			spec.signatureValidator,
@@ -102,19 +102,21 @@ func buildSpec(solution string) (*validationSpec, bool) {
 	}, true
 }
 
-func (vp validationSpec) nonceValidator() bool {
+func (vp *validationSpec) nonceValidator() bool {
 	hash := sha256.New()
-	hash.Write([]byte(fmt.Sprintf("%s%d", vp.challenge, vp.nonce)))
+	if _, err := fmt.Fprintf(hash, "%s%d", vp.challenge, vp.nonce); err != nil {
+		return false // TODO add error
+	}
 	res := hex.EncodeToString(hash.Sum(nil))
 
 	return res[:vp.difficulty] == strings.Repeat("0", vp.difficulty)
 }
 
-func (vp validationSpec) signatureValidator() bool {
+func (vp *validationSpec) signatureValidator() bool {
 	requestSignature, _ := sign(vp.requestID, vp.requestTime, vp.difficulty)
 	return vp.signature == requestSignature
 }
 
-func (vp validationSpec) timeValidator() bool {
+func (vp *validationSpec) timeValidator() bool {
 	return time.Now().Unix() < vp.requestTimeout
 }

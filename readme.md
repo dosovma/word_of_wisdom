@@ -1,14 +1,115 @@
+### Assignment
+
 Test task for Server Engineer
 
 Design and implement “Word of Wisdom” tcp server.
-• TCP server should be protected from DDOS attacks with the Proof of Work (https://en.wikipedia.org/wiki/Proof_of_work), the challenge-response protocol should be used.
+• TCP server should be protected from DDOS attacks with the Proof of Work (https://en.wikipedia.org/wiki/Proof_of_work),
+the challenge-response protocol should be used.
 • The choice of the POW algorithm should be explained.
-• After Proof Of Work verification, server should send one of the quotes from “word of wisdom” book or any other collection of the quotes.
+• After Proof Of Work verification, server should send one of the quotes from “word of wisdom” book or any other
+collection of the quotes.
 • Docker file should be provided both for the server and for the client that solves the POW challenge
 
+### Prerequisites
 
+Installed Docker https://docs.docker.com/engine/install/
 
-*Local launch*
-git clone https://github.com/dosovma/word_of_wisdom.git
-docker-compose build
-docker compose up
+### Local launch
+
+- git clone https://github.com/dosovma/word_of_wisdom.git
+- docker-compose build
+- docker compose up
+
+### Project description
+
+## The choice of the POW algorithm should be explained
+
+It was the most difficult issue. I spent a few hours to look into options and compared its.
+
+I would like to say that I read and understood all options. But It didn't.
+
+My choice is Hashcash:
+
+- It was invented to prevent denial-of-service attack. It's our target in assignment!
+- It has clear algorithm and many descriptions.
+- I started looking into the others and realised that I would spend hours just looking for information;
+
+Finally, I see that it's a good fit for assignment
+
+## Algorithm and implementation
+
+I hadn't had an experience in PoW, so I spent a few hours to understand what PoW is, and to look into implementations.
+
+I wrote project relying on two articles which seemed comprehensive to me:
+
+- https://en.wikipedia.org/wiki/Hashcash
+- https://www.mdpi.com/1999-4893/16/10/462
+
+You can find a lot of ideas from these articles in code.
+
+## Process
+
+Getting random quote is 7 steps process:
+
+1 - Client sends a request to get a token.
+2 - Server responses with a challenge.
+3 - Client solves challenge and sends a solution to Server.
+4 - Server checks if the solution is suitable (there are many different solution for one challenge).
+5 - Server responses with token.
+6 - Client requests a quote including token into the request.
+7 - Server validates token; and a random quote is sent to Client.
+
+## Message format
+
+Each message has a predefined format.
+
+```text
+"START:"
+"X-Command":[CommandType]
+Payload
+"END"
+```
+
+Payload consists of strings with headers:
+
+```text
+	"X-Solution:"
+	"X-Challenge:"
+	"X-Token:"
+	"X-Quote:"
+	"X-Request-id:"
+	"X-Request-time:"
+```
+
+It's just for fun and to provide a little logic and to ensure a sequence in client-server communication.
+Please, don't be rigorous.
+
+## Code decisions that might be unclear
+
+- MasterKey. I decided to use it to provide server stateless. It's seemed to me as a good alternative of storing have
+  gotten request in database.
+- Insufficient unit tests. It takes a time, so I wrote a few test to show you that I am skilled in that.
+
+### Features that I implemented in real work
+
+- Couple server load with difficulty. It provides evenly distribution of requests.
+- Use hash tree https://www.mdpi.com/1999-4893/16/10/462 Merkle tree https://en.wikipedia.org/wiki/Merkle_tree to access
+  to
+  multiple quotes
+- Refactor mapping challenge and solution strings into structure (new entity).
+- Graceful degradation in Client and Server sides
+- Increase test coverage
+- Implement Retry logic in case failure of writing data
+- Improve error handling: add more information, use a context
+- Add auth token invalidation logic
+- Close connection when challenge has been sent to client. Client will have to open new connection after challenge will
+  have been solved.
+- Add shutdown logic to Server
+- Use a context to perform read and write timeouts
+- Do access denied logic. I skipped this case in project on purpose.
+- Move /pkg and const that describes message format to a separate github repository; make it public; and start using it
+  as `go get github/.../tcp_communicator` in Client and Server.
+- Move a few const to envs: default difficulty, masterKey, timeout.
+- add linter
+- CI/CD setting like github actions (tests + linter)
+- add entity annotation

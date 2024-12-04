@@ -28,7 +28,7 @@ func Run() error {
 
 	s := service.New(quoteStorage, tokenStorage, logger)
 
-	m := messenger.NewMessenger(logger, tcp.MESSAGE_START, tcp.MESSAGE_END, tcp.MESSAGE_SIZE_LIMIT)
+	m := messenger.NewMessenger(logger, tcp.MessageStart, tcp.MessageEnd, tcp.MessageSizeLimit)
 
 	handler := tcp.NewHandler(s, tokenStorage, m, logger)
 

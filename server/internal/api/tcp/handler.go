@@ -24,11 +24,10 @@ type messenger interface {
 }
 
 type Handler struct {
-	service   service.IService
-	m         messenger
-	auth      tokenStorage
-	log       logger.Logger
-	messenger messenger
+	service service.IService
+	m       messenger
+	auth    tokenStorage
+	log     logger.Logger
 }
 
 func NewHandler(service service.IService, storage tokenStorage, m messenger, log logger.Logger) *Handler {
@@ -59,14 +58,14 @@ func (h *Handler) Handle(conn net.Conn) {
 
 		h.log.Println("message read")
 
-		cmd, err := tcp.GetDataByHeader(COMMAND, msg)
+		cmd, err := tcp.GetDataByHeader(Command, msg)
 		if err != nil {
 			h.log.Println("failed to read command")
 			return
 		}
 
 		switch cmd {
-		case CMD_TOKEN:
+		case CmdToken:
 			h.log.Println("got token request")
 
 			request, err := extractRequest(msg)
@@ -78,23 +77,23 @@ func (h *Handler) Handle(conn net.Conn) {
 
 			challenge := h.service.Challenge(*request)
 
-			if err = h.m.Write(conn, []string{CHALLENGE + challenge}); err != nil {
+			if err = h.m.Write(conn, []string{Challenge + challenge}); err != nil {
 				h.log.Println("failed to send challenge")
 				return //
 			}
 			h.log.Println("challenge sent")
-		case CMD_SOLUTION:
+		case CmdSolution:
 			h.log.Println("got validation request")
 
-			solution, err := tcp.GetDataByHeader(SOLUTION, msg)
+			solution, err := tcp.GetDataByHeader(Solution, msg)
 			if err != nil {
 				h.log.Println("failed to get solution header")
 				return
 			}
 
 			if isGranted := h.service.Validate(solution); !isGranted {
-				if err = h.m.Write(conn, []string{ACCESS + "Reject"}); err != nil {
-					return // TODO
+				if err = h.m.Write(conn, []string{Access + "Reject"}); err != nil {
+					return
 				}
 
 				continue
@@ -102,11 +101,11 @@ func (h *Handler) Handle(conn net.Conn) {
 
 			token := h.service.Token()
 
-			if err = h.m.Write(conn, []string{TOKEN + token.String()}); err != nil {
+			if err = h.m.Write(conn, []string{Token + token.String()}); err != nil {
 				h.log.Println("failed to send token")
 				return
 			}
-		case CMD_QUOTE:
+		case CmdQuote:
 			h.log.Println("got quote request")
 
 			if h.Auth(msg) {
@@ -116,7 +115,7 @@ func (h *Handler) Handle(conn net.Conn) {
 					return //
 				}
 
-				if err = h.m.Write(conn, []string{QUOTE + q}); err != nil {
+				if err = h.m.Write(conn, []string{Quote + q}); err != nil {
 					h.log.Println("failed to send quote")
 
 					return
@@ -125,15 +124,15 @@ func (h *Handler) Handle(conn net.Conn) {
 				return // close connection
 			}
 
-			if err = h.m.Write(conn, []string{ACCESS + "Reject"}); err != nil {
-				return // TODO
+			if err = h.m.Write(conn, []string{Access + "Reject"}); err != nil {
+				return
 			}
 		}
 	}
 }
 
 func extractRequest(request []string) (*entity.Request, error) {
-	idStr, err := tcp.GetDataByHeader(REQUEST_ID, request)
+	idStr, err := tcp.GetDataByHeader(RequestID, request)
 	if err != nil {
 		return nil, err // invalid response format
 	}
@@ -143,7 +142,7 @@ func extractRequest(request []string) (*entity.Request, error) {
 		return nil, err // invalid response format
 	}
 
-	timeStr, err := tcp.GetDataByHeader(REQUEST_TIME, request)
+	timeStr, err := tcp.GetDataByHeader(RequestTime, request)
 	if err != nil {
 		return nil, err // invalid response format
 	}
@@ -160,7 +159,7 @@ func extractRequest(request []string) (*entity.Request, error) {
 }
 
 func (h *Handler) Auth(messages []string) bool {
-	tokenStr, err := tcp.GetDataByHeader(TOKEN, messages)
+	tokenStr, err := tcp.GetDataByHeader(Token, messages)
 	if err != nil {
 		return false
 	}

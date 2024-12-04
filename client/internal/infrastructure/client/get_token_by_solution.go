@@ -5,7 +5,7 @@ import (
 )
 
 func (c *Client) GetTokenBySolution(solution string) (string, error) {
-	date := []string{COMMAND + CMD_SOLUTION, SOLUTION + solution}
+	date := []string{Command + CmdSolution, Solution + solution}
 	if err := c.messenger.Write(c.connection, date); err != nil {
 		return "", err
 	}
@@ -17,7 +17,7 @@ func (c *Client) GetTokenBySolution(solution string) (string, error) {
 	}
 	c.logger.Println("token message received")
 
-	token, err := tcp.GetDataByHeader(TOKEN, messages)
+	token, err := tcp.GetDataByHeader(Token, messages)
 	if err != nil {
 		return "", err
 	}

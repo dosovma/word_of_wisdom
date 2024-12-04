@@ -5,7 +5,7 @@ import (
 )
 
 func (c *Client) GetQuote(token string) (string, error) {
-	date := []string{COMMAND + CMD_QUOTE, TOKEN + token}
+	date := []string{Command + CmdQuote, Token + token}
 	if err := c.messenger.Write(c.connection, date); err != nil {
 		return "", err
 	}
@@ -17,7 +17,7 @@ func (c *Client) GetQuote(token string) (string, error) {
 	}
 	c.logger.Println("quote message received")
 
-	quote, err := tcp.GetDataByHeader(QUOTE, messages)
+	quote, err := tcp.GetDataByHeader(Quote, messages)
 	if err != nil {
 		return "", err
 	}

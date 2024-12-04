@@ -4,10 +4,11 @@ import (
 	"net"
 	"testing"
 
+	"github.com/golang/mock/gomock"
+
 	"client/internal/infrastructure/client"
 	"client/internal/infrastructure/client/mock"
 	loggerMock "client/pkg/logger/mock"
-	"github.com/golang/mock/gomock"
 )
 
 func TestClient_GetChallenge(t *testing.T) {

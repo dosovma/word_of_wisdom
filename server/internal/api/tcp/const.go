@@ -3,26 +3,26 @@ package tcp
 type CommandType = string
 
 const (
-	CMD_TOKEN    CommandType = "Token"
-	CMD_SOLUTION CommandType = "Solution"
-	CMD_QUOTE    CommandType = "Quote"
+	CmdToken    CommandType = "Token"
+	CmdSolution CommandType = "Solution"
+	CmdQuote    CommandType = "Quote"
 )
 
 type Header = string
 
 const (
-	COMMAND       Header = "X-Command:"
-	SOLUTION      Header = "X-Solution:"
-	CHALLENGE     Header = "X-Challenge:"
-	ACCESS        Header = "X-Access:"
-	TOKEN         Header = "X-Token:"
-	QUOTE         Header = "X-Quote:"
-	REQUEST_ID    Header = "X-Request-id:"
-	REQUEST_TIME  Header = "X-Request-time:"
-	MESSAGE_START Header = "START:"
-	MESSAGE_END   Header = "END:"
+	Command      Header = "X-Command:"
+	Solution     Header = "X-Solution:"
+	Challenge    Header = "X-Challenge:"
+	Access       Header = "X-Access:"
+	Token        Header = "X-Token:"
+	Quote        Header = "X-Quote:"
+	RequestID    Header = "X-Request-id:"
+	RequestTime  Header = "X-Request-time:"
+	MessageStart Header = "START:"
+	MessageEnd   Header = "END:"
 )
 
 const (
-	MESSAGE_SIZE_LIMIT = 4096 * 4
+	MessageSizeLimit = 4096 * 4
 )

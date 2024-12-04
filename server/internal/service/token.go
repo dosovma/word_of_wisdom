@@ -8,14 +8,12 @@ import (
 	"server/internal/service/entity"
 )
 
-// EXPIRY_TIME
-// TODO set by envs
-const EXPIRY_TIME = 1 * 60 * 60 // 1 час
+const ExpiryTime = 1 * 60 * 60 // 1 час // TODO set by envs
 
 func (s *Service) Token() uuid.UUID {
 	t := entity.Token{
 		ID:         uuid.New(),
-		ExpiryDate: time.Now().Add(time.Second * EXPIRY_TIME),
+		ExpiryDate: time.Now().Add(time.Second * ExpiryTime),
 	}
 
 	s.tokenStorage.Store(t)

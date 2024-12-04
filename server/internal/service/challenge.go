@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	V1 int = 1
+	v1 int = 1
 )
 
 const (
@@ -26,17 +26,18 @@ const (
 	challengeRule = "%d:%d:%d:%d:%d:%s"
 )
 
-func (s *Service) Challenge(r entity.Request) string {
+func (*Service) Challenge(r entity.Request) string {
 	signature, reqTimeout := sign(r.ID, r.CreatedAt, difficulty)
 
-	return fmt.Sprintf(challengeRule, V1, difficulty, r.ID, r.CreatedAt, reqTimeout, signature)
+	return fmt.Sprintf(challengeRule, v1, difficulty, r.ID, r.CreatedAt, reqTimeout, signature)
 }
 
-func sign(requestID int64, requestTime int64, difficulty int) (string, int64) {
+func sign(requestID, requestTime int64, difficulty int) (string, int64) {
 	hash := sha256.New()
 	reqTimeout := requestTime + timeout
-	s := fmt.Sprintf(signatureRule, masterKey, requestID, requestTime, difficulty, reqTimeout)
-	hash.Write([]byte(s))
+	if _, err := fmt.Fprintf(hash, signatureRule, masterKey, requestID, requestTime, difficulty, reqTimeout); err != nil {
+		return "", 0 // TODO add error
+	}
 
 	return hex.EncodeToString(hash.Sum(nil)), reqTimeout
 }

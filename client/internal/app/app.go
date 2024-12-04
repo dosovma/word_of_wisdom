@@ -15,13 +15,13 @@ import (
 )
 
 const (
-	SERVER_PORT = ":9000"
+	ServerPort = ":9000"
 )
 
 func Run() error {
 	logger := log.New(os.Stdout, "client:", log.LstdFlags)
 
-	conn, err := net.Dial("tcp", SERVER_PORT)
+	conn, err := net.Dial("tcp", ServerPort)
 	if err != nil {
 		logger.Printf("failed to dial server: %s", err)
 
@@ -34,7 +34,7 @@ func Run() error {
 		log.Println("connection closed")
 	}(conn)
 
-	m := tcp.NewMessenger(logger, client.MESSAGE_START, client.MESSAGE_END, client.MESSAGE_SIZE_LIMIT)
+	m := tcp.NewMessenger(logger, client.MessageStart, client.MessageEnd, client.MessageSizeLimit)
 
 	c := client.NewTCPClient(conn, m, logger)
 	slvr := solver.New(logger)
