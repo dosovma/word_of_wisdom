@@ -20,7 +20,7 @@ Installed Docker https://docs.docker.com/engine/install/
 - docker-compose build
 - docker compose up
 
-You will see a logs and quote from world of wisdom.
+You will see logs and quote from world of wisdom.
 
 Client will finish automatically. Server should be stopped by executing CTRL+C.
 
@@ -28,23 +28,23 @@ Client will finish automatically. Server should be stopped by executing CTRL+C.
 
 #### The choice of the POW algorithm should be explained
 
-It was the most difficult issue. I spent a few hours to look into options and compared its.
+It was the most difficult issue. I spent a few hours to look into options and to compare its.
 
-I would like to say that I read and understood all options. But It didn't.
+I would like to say that I read and understood all options. But I didn't.
 
 My choice is Hashcash:
 
 - It was invented to prevent denial-of-service attack. It's our target in assignment!
 - It has clear algorithm and many descriptions.
-- I started looking into the others and realised that I would spend hours just looking for information;
+- I started looking into the others and realised that I would spend hours just looking for information.
 
 Finally, I see that it's a good fit for assignment
 
 #### Algorithm and implementation
 
-I hadn't had an experience in PoW, so I spent a few hours to understand what PoW is, and to look into implementations.
+I hadn't had an experience with PoW, so I spent a few hours to understand what PoW is, and to look into implementations.
 
-I wrote project relying on two articles which seemed comprehensive to me:
+I project based on two articles which seemed comprehensive to me:
 
 - https://en.wikipedia.org/wiki/Hashcash
 - https://www.mdpi.com/1999-4893/16/10/462
@@ -91,26 +91,24 @@ Payload consists of strings with headers:
 	"X-Request-time:"
 ```
 
-It's just for fun and to provide a little logic and to ensure a sequence in client-server communication.
-Please, don't be rigorous.
+It's just for fun and to structure client-server communication. Please, don't be rigorous.
 
 #### Code decisions that might be unclear
 
-- MasterKey. I decided to use it to provide server stateless. It's seemed to me as a good alternative of storing have
-  gotten request in database.
-- Insufficient unit tests. It takes a time, so I wrote a few test to show you that I am skilled in that.
+- MasterKey. I decided to use it to ensure server stateless. It's seemed to me as a good alternative of storing have
+  gotten requests in database.
+- Insufficient unit tests. It takes a time, so I wrote a few test to show that I am skilled in that.
 
 #### Features that I implemented in real work
 
-- Couple server load with difficulty. It provides evenly distribution of requests.
+- To couple server load with difficulty. It provides evenly distribution of requests.
 - Use hash tree https://www.mdpi.com/1999-4893/16/10/462 Merkle tree https://en.wikipedia.org/wiki/Merkle_tree to access
-  to
-  multiple quotes
-- Refactor mapping challenge and solution strings into structure (new entity).
-- Graceful degradation in Client and Server sides
+  to multiple quotes
+- Do a refactor of mapping challenge and solution strings into structure (new entity).
+- Add graceful degradation in Client and Server sides: default value for errors from the other side.
 - Increase test coverage
 - Implement Retry logic in case failure of writing data
-- Improve error handling: add more information, use a context
+- Improve error handling: add more data, use a context
 - Add auth token invalidation logic
 - Close connection when challenge has been sent to client. Client will have to open new connection after challenge will
   have been solved.

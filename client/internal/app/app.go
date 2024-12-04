@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math/rand"
@@ -19,6 +20,12 @@ const (
 )
 
 func Run() error {
+	defer func() {
+		if panicErr := recover(); panicErr != nil {
+			log.Println(context.Background(), panicErr)
+		}
+	}()
+
 	logger := log.New(os.Stdout, "client:", log.LstdFlags)
 
 	conn, err := net.Dial("tcp", ServerPort)

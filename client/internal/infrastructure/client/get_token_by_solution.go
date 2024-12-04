@@ -5,8 +5,8 @@ import (
 )
 
 func (c *Client) GetTokenBySolution(solution string) (string, error) {
-	date := []string{Command + CmdSolution, Solution + solution}
-	if err := c.messenger.Write(c.connection, date); err != nil {
+	data := []string{Command + CmdSolution, Solution + solution}
+	if err := c.messenger.Write(c.connection, data); err != nil {
 		return "", err
 	}
 	c.logger.Println("solution sent")

@@ -5,8 +5,8 @@ import (
 )
 
 func (c *Client) GetQuote(token string) (string, error) {
-	date := []string{Command + CmdQuote, Token + token}
-	if err := c.messenger.Write(c.connection, date); err != nil {
+	data := []string{Command + CmdQuote, Token + token}
+	if err := c.messenger.Write(c.connection, data); err != nil {
 		return "", err
 	}
 	c.logger.Println("quote requested")
