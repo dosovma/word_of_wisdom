@@ -11,62 +11,15 @@ import (
 	"server/internal/service/entity"
 )
 
-// V1 : difficulty : requestID : requestTime : collapsedTime : requestSignature : nonce
-const responseRule = "%d:%d:%d:%d:%d:%s:%d"
-
 type validationSpec struct {
-	version       int
-	difficulty    int
-	requestID     int64
-	requestTime   int64
-	collapsedTime int64
-	signature     string
-	nonce         int64
-	challenge     string
-}
-
-func buildSpec(solution string) (*validationSpec, bool) {
-	responseParams := strings.Split(solution, ":")
-
-	v, err := strconv.Atoi(responseParams[0])
-	if err != nil {
-		return nil, false // invalid task format
-	}
-
-	d, err := strconv.Atoi(responseParams[1])
-	if err != nil {
-		return nil, false // invalid response format
-	}
-
-	reqID, err := strconv.ParseInt(responseParams[2], 10, 64)
-	if err != nil {
-		return nil, false // invalid response format
-	}
-
-	reqTime, err := strconv.ParseInt(responseParams[3], 10, 64)
-	if err != nil {
-		return nil, false // invalid response format
-	}
-
-	collapsedTime, err := strconv.ParseInt(responseParams[4], 10, 64)
-	if err != nil {
-		return nil, false // invalid response format
-	}
-
-	nonce, err := strconv.ParseInt(responseParams[6], 10, 64)
-	if err != nil {
-		return nil, false // invalid response format
-	}
-
-	return &validationSpec{
-		version:       v,
-		difficulty:    d,
-		requestID:     reqID,
-		requestTime:   reqTime,
-		collapsedTime: collapsedTime,
-		signature:     responseParams[5],
-		nonce:         nonce,
-	}, true
+	version        int
+	difficulty     int
+	requestID      int64
+	requestTime    int64
+	requestTimeout int64
+	signature      string
+	nonce          int64
+	challenge      string
 }
 
 func (s *Service) Validate(solution string) bool {
@@ -105,6 +58,50 @@ func (s *Service) Validate(solution string) bool {
 	return true
 }
 
+func buildSpec(solution string) (*validationSpec, bool) {
+	solutionParams := strings.Split(solution, ":") // version:difficulty:requestID:requestTime:requestTimeout:requestSignature:nonce
+
+	v, err := strconv.Atoi(solutionParams[0])
+	if err != nil {
+		return nil, false
+	}
+
+	d, err := strconv.Atoi(solutionParams[1])
+	if err != nil {
+		return nil, false
+	}
+
+	reqID, err := strconv.ParseInt(solutionParams[2], 10, 64)
+	if err != nil {
+		return nil, false
+	}
+
+	reqTime, err := strconv.ParseInt(solutionParams[3], 10, 64)
+	if err != nil {
+		return nil, false
+	}
+
+	reqTimeout, err := strconv.ParseInt(solutionParams[4], 10, 64)
+	if err != nil {
+		return nil, false
+	}
+
+	nonce, err := strconv.ParseInt(solutionParams[6], 10, 64)
+	if err != nil {
+		return nil, false
+	}
+
+	return &validationSpec{
+		version:        v,
+		difficulty:     d,
+		requestID:      reqID,
+		requestTime:    reqTime,
+		requestTimeout: reqTimeout,
+		signature:      solutionParams[5],
+		nonce:          nonce,
+	}, true
+}
+
 func (vp validationSpec) nonceValidator() bool {
 	hash := sha256.New()
 	hash.Write([]byte(fmt.Sprintf("%s%d", vp.challenge, vp.nonce)))
@@ -119,5 +116,5 @@ func (vp validationSpec) signatureValidator() bool {
 }
 
 func (vp validationSpec) timeValidator() bool {
-	return time.Now().Unix() < vp.collapsedTime
+	return time.Now().Unix() < vp.requestTimeout
 }

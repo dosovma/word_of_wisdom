@@ -6,22 +6,22 @@ import (
 
 func (c *Client) GetQuote(token string) (string, error) {
 	date := []string{COMMAND + CMD_QUOTE, TOKEN + token}
-	if err := c.m.Write(date); err != nil {
+	if err := c.messenger.Write(c.connection, date); err != nil {
 		return "", err
 	}
-	c.l.Println("quote requested")
+	c.logger.Println("quote requested")
 
-	messages, err := c.m.Read()
+	messages, err := c.messenger.Read(c.connection)
 	if err != nil {
 		return "", err
 	}
-	c.l.Println("quote message received")
+	c.logger.Println("quote message received")
 
 	quote, err := tcp.GetDataByHeader(QUOTE, messages)
 	if err != nil {
 		return "", err
 	}
-	c.l.Println("quote found")
+	c.logger.Println("quote found")
 
 	return quote, nil
 }

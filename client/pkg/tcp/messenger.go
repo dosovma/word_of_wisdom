@@ -3,49 +3,69 @@ package tcp
 import (
 	"bufio"
 	"errors"
-	"fmt"
+	"io"
 	"net"
 	"strings"
+
+	"client/pkg/logger"
+)
+
+var (
+	ErrLimitExceeded = errors.New("message limit exceeded")
+	ErrNotFound      = errors.New("header not found")
 )
 
 type Messenger struct {
-	conn         net.Conn
+	logger       logger.Logger
 	messageStart string
 	messageEnd   string
 	messageLimit int
 }
 
-func NewMessenger(conn net.Conn, messageStart string, messageEnd string, messageLimit int) *Messenger {
-	return &Messenger{conn: conn, messageStart: messageStart, messageEnd: messageEnd, messageLimit: messageLimit}
+func NewMessenger(logger logger.Logger, messageStart string, messageEnd string, messageLimit int) *Messenger {
+	return &Messenger{
+		logger:       logger,
+		messageStart: messageStart,
+		messageEnd:   messageEnd,
+		messageLimit: messageLimit,
+	}
 }
 
-func (m *Messenger) Write(messages []string) error {
+func (m *Messenger) Write(conn net.Conn, messages []string) error {
 	message := make([]string, 0, len(messages)+2)
 	message = append(message, m.messageStart)
 	message = append(message, messages...)
 	message = append(message, m.messageEnd)
 
 	for _, msg := range message {
-		_, err := m.conn.Write([]byte(msg + "\n"))
+		_, err := conn.Write([]byte(msg + "\n"))
 		if err != nil {
-			return err // TODO
+			m.logger.Printf("failed to write message: %s: err: %s", msg, err)
+
+			return err
 		}
 	}
 
 	return nil
 }
 
-func (m *Messenger) Read() ([]string, error) {
+func (m *Messenger) Read(conn net.Conn) ([]string, error) {
 	messageSize := 0
-	connReader := bufio.NewReader(m.conn)
+	connReader := bufio.NewReader(conn)
 
 	message := make([]string, 0, 1)
 
 	for {
-		fmt.Println("start reading")
 		str, err := connReader.ReadString('\n')
 		if err != nil {
-			fmt.Println("failed to read data")
+			if errors.Is(err, io.EOF) {
+				m.logger.Printf("invalid message format: not found END message: %s", err)
+
+				return message, nil
+			}
+
+			m.logger.Printf("failed to read message: %s", err)
+
 			return nil, err
 		}
 
@@ -53,8 +73,9 @@ func (m *Messenger) Read() ([]string, error) {
 
 		messageSize += len(msg)
 		if messageSize >= m.messageLimit {
-			fmt.Println("message limit exceeded")
-			return nil, errors.New("message limit exceeded")
+			m.logger.Printf("message limit exceeded: %d", messageSize)
+
+			return nil, ErrLimitExceeded
 		}
 
 		if m.isPayload(msg) {
@@ -62,7 +83,6 @@ func (m *Messenger) Read() ([]string, error) {
 		}
 
 		if msg == m.messageEnd {
-			fmt.Println("finish reading")
 			return message, nil
 		}
 	}
@@ -70,4 +90,16 @@ func (m *Messenger) Read() ([]string, error) {
 
 func (m *Messenger) isPayload(msg string) bool {
 	return msg != m.messageStart && msg != m.messageEnd
+}
+
+func GetDataByHeader(header string, messages []string) (string, error) {
+	for _, str := range messages {
+		if strings.HasPrefix(str, header) {
+			data, _ := strings.CutPrefix(str, header)
+
+			return data, nil
+		}
+	}
+
+	return "", ErrNotFound
 }

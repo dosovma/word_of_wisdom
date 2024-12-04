@@ -8,6 +8,6 @@ RUN go mod download && go mod verify
 
 COPY . ./
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o tcpserver cmd/*
+RUN CGO_ENABLED=0 go build -o tcpserver cmd/*
 
-CMD ["./tcpserver"]
+ENTRYPOINT ["./tcpserver"]

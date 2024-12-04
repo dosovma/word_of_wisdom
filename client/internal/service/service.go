@@ -1,17 +1,10 @@
 package service
 
-import (
-	"client/internal/infrastructure/client"
-)
-
-type IService interface {
-	Quote() (string, error)
-}
-
 type Service struct {
-	client *client.Client
+	client TCPClient
+	solver Solver
 }
 
-func NewService(client *client.Client) *Service {
-	return &Service{client: client}
+func NewService(client TCPClient, solver Solver) *Service {
+	return &Service{client: client, solver: solver}
 }

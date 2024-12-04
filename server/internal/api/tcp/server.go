@@ -27,7 +27,7 @@ func NewServer(host string, port string, handler *Handler, logger logger.Logger)
 }
 
 func (s *Server) Serve() error {
-	listener, err := net.Listen("tcp", "127.0.0.1:9001")
+	listener, err := net.Listen("tcp", SERVER_PORT)
 	if err != nil {
 		s.log.Println(err)
 		return err
@@ -48,6 +48,6 @@ func (s *Server) Serve() error {
 		}
 		s.log.Println("connection accepted")
 
-		s.handler.Handle(conn)
+		go s.handler.Handle(conn)
 	}
 }

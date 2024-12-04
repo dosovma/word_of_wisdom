@@ -5,23 +5,23 @@ import (
 )
 
 func (c *Client) GetChallenge(requestID, requestTime string) (string, error) {
-	date := []string{COMMAND + CMD_TOKEN, REQUEST_ID + requestID, REQUEST_TIME + requestTime}
-	if err := c.m.Write(date); err != nil {
+	data := []string{COMMAND + CMD_TOKEN, REQUEST_ID + requestID, REQUEST_TIME + requestTime}
+	if err := c.messenger.Write(c.connection, data); err != nil {
 		return "", err
 	}
-	c.l.Println("token requested")
+	c.logger.Println("token requested")
 
-	messages, err := c.m.Read()
+	messages, err := c.messenger.Read(c.connection)
 	if err != nil {
 		return "", err
 	}
-	c.l.Println("challenge message received")
+	c.logger.Println("challenge message received")
 
 	challenge, err := tcp.GetDataByHeader(CHALLENGE, messages)
 	if err != nil {
 		return "", err
 	}
-	c.l.Println("challenge found")
+	c.logger.Println("challenge found")
 
 	return challenge, nil
 }

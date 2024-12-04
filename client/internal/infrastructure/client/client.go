@@ -4,24 +4,24 @@ import (
 	"net"
 
 	"client/pkg/logger"
-	"client/pkg/tcp"
 )
 
-type messenger interface {
-	Write(messages []string) error
-	Read() ([]string, error)
+//go:generate mockgen -destination=./mock/messenger.go -package=mock . Messenger
+type Messenger interface {
+	Write(conn net.Conn, messages []string) error
+	Read(conn net.Conn) ([]string, error)
 }
 
 type Client struct {
-	conn net.Conn
-	m    messenger
-	l    logger.Logger
+	connection net.Conn
+	messenger  Messenger
+	logger     logger.Logger
 }
 
-func NewTCPClient(conn net.Conn, l logger.Logger) *Client {
+func NewTCPClient(conn net.Conn, m Messenger, log logger.Logger) *Client {
 	return &Client{
-		conn: conn,
-		m:    tcp.NewMessenger(conn, MESSAGE_START, MESSAGE_END, MESSAGE_SIZE_LIMIT),
-		l:    l,
+		connection: conn,
+		messenger:  m,
+		logger:     log,
 	}
 }

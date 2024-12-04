@@ -22,14 +22,14 @@ func TestService_Challenge(t *testing.T) {
 		want string
 	}{
 		{
-			name: "case_1",
+			name: "success_challenge_generated",
 			args: args{
 				r: entity.Request{
 					ID:        123456,
-					CreatedAt: time.Date(2024, 12, 1, 10, 10, 0, 0, time.UTC).Unix(),
+					CreatedAt: time.Date(2024, 12, 5, 10, 10, 0, 0, time.UTC).Unix(),
 				},
 			},
-			want: "1:5:123456:1733047800:1733134200:387a824155f23c7392190f2ac624a43270ac6bde6b21384da1ee1dcdf2644b9a",
+			want: "1:5:123456:1733393400:1733397000:5c06f48d5f94ccee414ee1513a4bd75f4d89e50eac01ff45705339cff2b5148a",
 		},
 	}
 	for _, tt := range tests {
@@ -40,8 +40,6 @@ func TestService_Challenge(t *testing.T) {
 			l := logMock.NewMockLogger(ctrl)
 
 			s := service.New(quoteStorage, tokenStorage, l)
-
-			//tt.mockCalls(tt.args, quoteStorage, tokenStorage)
 
 			if got := s.Challenge(tt.args.r); got != tt.want {
 				t.Errorf("Challenge() = %v, want %v", got, tt.want)

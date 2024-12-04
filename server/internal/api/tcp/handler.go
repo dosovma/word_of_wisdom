@@ -19,22 +19,24 @@ type tokenStorage interface {
 }
 
 type messenger interface {
-	Write(messages []string) error
-	Read() ([]string, error)
+	Write(conn net.Conn, messages []string) error
+	Read(conn net.Conn) ([]string, error)
 }
 
 type Handler struct {
-	service service.IService
-	m       messenger
-	auth    tokenStorage
-	log     logger.Logger
+	service   service.IService
+	m         messenger
+	auth      tokenStorage
+	log       logger.Logger
+	messenger messenger
 }
 
-func NewHandler(service service.IService, storage tokenStorage, log logger.Logger) *Handler {
+func NewHandler(service service.IService, storage tokenStorage, m messenger, log logger.Logger) *Handler {
 	return &Handler{
 		service: service,
 		auth:    storage,
 		log:     log,
+		m:       m,
 	}
 }
 
@@ -46,12 +48,10 @@ func (h *Handler) Handle(conn net.Conn) {
 		h.log.Println("connection closed")
 	}(conn)
 
-	h.m = tcp.NewMessenger(conn, MESSAGE_START, MESSAGE_END, MESSAGE_SIZE_LIMIT)
-
 	for {
 		h.log.Println("start handling")
 
-		msg, err := h.m.Read()
+		msg, err := h.m.Read(conn)
 		if err != nil {
 			h.log.Println("failed to read message")
 			return // write error
@@ -72,12 +72,13 @@ func (h *Handler) Handle(conn net.Conn) {
 			request, err := extractRequest(msg)
 			if err != nil {
 				h.log.Println("failed to get request header")
-				return // invalid response format
+
+				return
 			}
 
 			challenge := h.service.Challenge(*request)
 
-			if err = h.m.Write([]string{CHALLENGE + challenge}); err != nil {
+			if err = h.m.Write(conn, []string{CHALLENGE + challenge}); err != nil {
 				h.log.Println("failed to send challenge")
 				return //
 			}
@@ -92,7 +93,7 @@ func (h *Handler) Handle(conn net.Conn) {
 			}
 
 			if isGranted := h.service.Validate(solution); !isGranted {
-				if err = h.m.Write([]string{ACCESS + "Reject"}); err != nil {
+				if err = h.m.Write(conn, []string{ACCESS + "Reject"}); err != nil {
 					return // TODO
 				}
 
@@ -101,7 +102,7 @@ func (h *Handler) Handle(conn net.Conn) {
 
 			token := h.service.Token()
 
-			if err = h.m.Write([]string{TOKEN + token.String()}); err != nil {
+			if err = h.m.Write(conn, []string{TOKEN + token.String()}); err != nil {
 				h.log.Println("failed to send token")
 				return
 			}
@@ -115,15 +116,16 @@ func (h *Handler) Handle(conn net.Conn) {
 					return //
 				}
 
-				if err = h.m.Write([]string{QUOTE + q}); err != nil {
+				if err = h.m.Write(conn, []string{QUOTE + q}); err != nil {
 					h.log.Println("failed to send quote")
+
 					return
 				}
 
-				continue
+				return // close connection
 			}
 
-			if err = h.m.Write([]string{ACCESS + "Reject"}); err != nil {
+			if err = h.m.Write(conn, []string{ACCESS + "Reject"}); err != nil {
 				return // TODO
 			}
 		}

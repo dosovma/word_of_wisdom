@@ -13,30 +13,30 @@ const (
 )
 
 const (
-	masterKey        = 2
-	difficulty       = 5
-	collapsedTimeout = 24 * 60 * 60 // 24 часа
+	masterKey  = 2           // TODO set by envs
+	difficulty = 5           // TODO set by envs
+	timeout    = 1 * 60 * 60 // 1 час // TODO set by envs
 )
 
 const (
-	// masterKey : difficulty : requestID : requestTime : collapsedTime
+	// masterKey : difficulty : requestID : requestTime : requestTimeout
 	signatureRule = "%d:%d:%d:%d:%d"
 
-	// version : difficulty : requestID : requestTime : collapsedTime : requestSignature
-	taskRule = "%d:%d:%d:%d:%d:%s"
+	// version : difficulty : requestID : requestTime : requestTimeout : requestSignature
+	challengeRule = "%d:%d:%d:%d:%d:%s"
 )
 
 func (s *Service) Challenge(r entity.Request) string {
-	signature, collapsedTime := sign(r.ID, r.CreatedAt, difficulty)
+	signature, reqTimeout := sign(r.ID, r.CreatedAt, difficulty)
 
-	return fmt.Sprintf(taskRule, V1, difficulty, r.ID, r.CreatedAt, collapsedTime, signature)
+	return fmt.Sprintf(challengeRule, V1, difficulty, r.ID, r.CreatedAt, reqTimeout, signature)
 }
 
 func sign(requestID int64, requestTime int64, difficulty int) (string, int64) {
 	hash := sha256.New()
-	collapsedTime := requestTime + collapsedTimeout
-	s := fmt.Sprintf(signatureRule, masterKey, requestID, requestTime, difficulty, collapsedTime)
+	reqTimeout := requestTime + timeout
+	s := fmt.Sprintf(signatureRule, masterKey, requestID, requestTime, difficulty, reqTimeout)
 	hash.Write([]byte(s))
 
-	return hex.EncodeToString(hash.Sum(nil)), collapsedTime
+	return hex.EncodeToString(hash.Sum(nil)), reqTimeout
 }

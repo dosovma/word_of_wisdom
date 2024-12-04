@@ -6,22 +6,22 @@ import (
 
 func (c *Client) GetTokenBySolution(solution string) (string, error) {
 	date := []string{COMMAND + CMD_SOLUTION, SOLUTION + solution}
-	if err := c.m.Write(date); err != nil {
+	if err := c.messenger.Write(c.connection, date); err != nil {
 		return "", err
 	}
-	c.l.Println("solution sent")
+	c.logger.Println("solution sent")
 
-	messages, err := c.m.Read()
+	messages, err := c.messenger.Read(c.connection)
 	if err != nil {
 		return "", err
 	}
-	c.l.Println("token message received")
+	c.logger.Println("token message received")
 
 	token, err := tcp.GetDataByHeader(TOKEN, messages)
 	if err != nil {
 		return "", err
 	}
-	c.l.Println("token found")
+	c.logger.Println("token found")
 
 	return token, nil
 }

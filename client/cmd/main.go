@@ -8,6 +8,6 @@ import (
 
 func main() {
 	if err := app.Run(); err != nil {
-		log.Fatalf("failed to init app: %s", err.Error())
+		log.Fatalf("failed to init client: %s", err.Error())
 	}
 }

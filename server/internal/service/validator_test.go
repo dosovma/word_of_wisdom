@@ -11,23 +11,18 @@ import (
 )
 
 func TestValidate(t *testing.T) {
-
 	type args struct {
 		solution string
 	}
 	tests := []struct {
-		name      string
-		args      args
-		mockCalls func(args, *mock.MockQuoteStorage, *mock.MockTokenStorage)
-		want      bool
+		name string
+		args args
+		want bool
 	}{
 		{
-			name: "case_1",
+			name: "success_csolution_valitated",
 			args: args{
-				solution: "1:5:123456:1733047800:1733134200:387a824155f23c7392190f2ac624a43270ac6bde6b21384da1ee1dcdf2644b9a:1325220",
-			},
-			mockCalls: func(args, *mock.MockQuoteStorage, *mock.MockTokenStorage) {
-
+				solution: "1:5:123456:1733393400:1733397000:5c06f48d5f94ccee414ee1513a4bd75f4d89e50eac01ff45705339cff2b5148a:987222",
 			},
 			want: true,
 		},
@@ -40,8 +35,6 @@ func TestValidate(t *testing.T) {
 			l := logMock.NewMockLogger(ctrl)
 
 			s := service.New(quoteStorage, tokenStorage, l)
-
-			tt.mockCalls(tt.args, quoteStorage, tokenStorage)
 
 			if got := s.Validate(tt.args.solution); got != tt.want {
 				t.Errorf("Validate() = %v, want %v", got, tt.want)

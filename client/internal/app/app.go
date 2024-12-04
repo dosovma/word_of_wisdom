@@ -3,15 +3,19 @@ package app
 import (
 	"fmt"
 	"log"
+	"math/rand"
 	"net"
 	"os"
+	"time"
 
 	"client/internal/infrastructure/client"
 	"client/internal/service"
+	"client/internal/service/solver"
+	"client/pkg/tcp"
 )
 
 const (
-	SERVER_PORT = ":9001"
+	SERVER_PORT = ":9000"
 )
 
 func Run() error {
@@ -19,20 +23,30 @@ func Run() error {
 
 	conn, err := net.Dial("tcp", SERVER_PORT)
 	if err != nil {
-		fmt.Println("dial error:", err)
+		logger.Printf("failed to dial server: %s", err)
+
 		return err
 	}
 	defer func(conn net.Conn) {
 		if err := conn.Close(); err != nil {
-			log.Printf("failed to close connection: %s\n", err)
+			log.Printf("failed to close connection: %s", err)
 		}
+		log.Println("connection closed")
 	}(conn)
 
-	c := client.NewTCPClient(conn, logger)
+	m := tcp.NewMessenger(logger, client.MESSAGE_START, client.MESSAGE_END, client.MESSAGE_SIZE_LIMIT)
 
-	s := service.NewService(c)
+	c := client.NewTCPClient(conn, m, logger)
+	slvr := solver.New(logger)
 
-	quote, err := s.Quote()
+	return testRequest(service.NewService(c, slvr))
+}
+
+func testRequest(s service.IService) error {
+	id := rand.Int63n(100000)
+	t := time.Now().Unix()
+
+	quote, err := s.Quote(id, t)
 	if err != nil {
 		return err
 	}

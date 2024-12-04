@@ -8,6 +8,7 @@ import (
 	"server/internal/config"
 	"server/internal/service"
 	"server/internal/storage"
+	messenger "server/pkg/tcp"
 )
 
 func Run() error {
@@ -27,7 +28,9 @@ func Run() error {
 
 	s := service.New(quoteStorage, tokenStorage, logger)
 
-	handler := tcp.NewHandler(s, tokenStorage, logger)
+	m := messenger.NewMessenger(logger, tcp.MESSAGE_START, tcp.MESSAGE_END, tcp.MESSAGE_SIZE_LIMIT)
+
+	handler := tcp.NewHandler(s, tokenStorage, m, logger)
 
 	tcpServer := tcp.NewServer(cfg.Host, cfg.Port, handler, logger)
 	logger.Println("server init")
