@@ -57,13 +57,13 @@ Getting random quote is 7 steps process:
 
 1 - Client sends a request to get a token.
 
-2 - Server responses with a challenge.
+2 - Server responds with a challenge.
 
 3 - Client solves challenge and sends a solution to Server.
 
 4 - Server checks if the solution is suitable (there are many different solution for one challenge).
 
-5 - Server responses with token.
+5 - Server responds with token.
 
 6 - Client requests a quote including token into the request.
 
