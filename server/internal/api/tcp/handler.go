@@ -1,8 +1,6 @@
 package tcp
 
 import (
-	"bufio"
-	"errors"
 	"net"
 	"strconv"
 	"time"
@@ -20,8 +18,14 @@ type tokenStorage interface {
 	Store(entity.Token)
 }
 
+type messenger interface {
+	Write(header string, messages []string) error
+	Read() ([]string, error)
+}
+
 type Handler struct {
 	service service.IService
+	m       messenger
 	auth    tokenStorage
 	log     logger.Logger
 }
@@ -41,8 +45,10 @@ func (h *Handler) Handle(conn net.Conn) {
 		}
 	}(conn)
 
+	h.m = tcp.NewMessenger(conn, MESSAGE_START, MESSAGE_END, MESSAGE_SIZE_LIMIT)
+
 	for {
-		msg, err := readMessage(conn)
+		msg, err := h.m.Read()
 		if err != nil {
 			return // write error
 		}
@@ -53,20 +59,7 @@ func (h *Handler) Handle(conn net.Conn) {
 		}
 
 		switch cmd {
-		case CMD_REQUEST:
-			if h.Auth(msg) {
-				q, err := h.service.Quote()
-				if err != nil {
-					return //
-				}
-
-				if err = writeMessage(conn, QUOTE, []string{q}); err != nil {
-					return //
-				}
-
-				continue
-			}
-
+		case CMD_TOKEN:
 			request, err := extractRequest(msg)
 			if err != nil {
 				return // invalid response format
@@ -74,7 +67,7 @@ func (h *Handler) Handle(conn net.Conn) {
 
 			challenge := h.service.Challenge(*request)
 
-			if err = writeMessage(conn, CHALLENGE, []string{challenge}); err != nil {
+			if err = h.m.Write(CHALLENGE, []string{challenge}); err != nil {
 				return //
 			}
 		case CMD_SOLUTION:
@@ -84,7 +77,7 @@ func (h *Handler) Handle(conn net.Conn) {
 			}
 
 			if isGranted := h.service.Validate(solution); !isGranted {
-				if err = writeMessage(conn, ACCESS, []string{"Reject"}); err != nil {
+				if err = h.m.Write(ACCESS, []string{"Reject"}); err != nil {
 					return // TODO
 				}
 
@@ -93,27 +86,28 @@ func (h *Handler) Handle(conn net.Conn) {
 
 			token := h.service.Token()
 
-			if err = writeMessage(conn, TOKEN, []string{token.String()}); err != nil {
+			if err = h.m.Write(TOKEN, []string{token.String()}); err != nil {
+				return // TODO
+			}
+		case CMD_QUOTE:
+			if h.Auth(msg) {
+				q, err := h.service.Quote()
+				if err != nil {
+					return //
+				}
+
+				if err = h.m.Write(QUOTE, []string{q}); err != nil {
+					return //
+				}
+
+				continue
+			}
+
+			if err = h.m.Write(ACCESS, []string{"Reject"}); err != nil {
 				return // TODO
 			}
 		}
 	}
-}
-
-func writeMessage(conn net.Conn, header string, messages []string) error {
-	message := make([]string, 0, len(messages)+2)
-	message = append(message, MESSAGE_START)
-	message = append(message, tcp.AddDataToHeader(header, messages)...)
-	message = append(message, MESSAGE_END)
-
-	for _, msg := range message {
-		_, err := conn.Write([]byte(msg))
-		if err != nil {
-			return err // TODO
-		}
-	}
-
-	return nil
 }
 
 func extractRequest(request []string) (*entity.Request, error) {
@@ -143,33 +137,6 @@ func extractRequest(request []string) (*entity.Request, error) {
 	}, nil
 }
 
-func readMessage(conn net.Conn) ([]string, error) {
-	messageSize := 0
-	connReader := bufio.NewReader(conn)
-
-	message := make([]string, 0, 1)
-
-	for {
-		str, err := connReader.ReadString('\n')
-		if err != nil {
-			return nil, err
-		}
-
-		messageSize += len(str)
-		if messageSize >= MESSAGE_SIZE_LIMIT {
-			return nil, errors.New("message limit exceeded")
-		}
-
-		if isPayload(str) {
-			message = append(message, str)
-		}
-
-		if str == MESSAGE_END {
-			return message, nil
-		}
-	}
-}
-
 func (h *Handler) Auth(messages []string) bool {
 	tokenStr, err := tcp.GetDataByHeader(TOKEN, messages)
 	if err != nil {
@@ -189,8 +156,4 @@ func (h *Handler) Auth(messages []string) bool {
 	}
 
 	return token.ExpiryDate.Before(time.Now())
-}
-
-func isPayload(msg string) bool {
-	return msg != MESSAGE_START && msg != MESSAGE_END
 }

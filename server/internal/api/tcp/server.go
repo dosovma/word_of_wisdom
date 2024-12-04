@@ -45,8 +45,6 @@ func (s *Server) Serve() error {
 		conn, err := listener.Accept()
 		if err != nil {
 			s.log.Printf("failed to accept connection: %s", err)
-
-			return err
 		}
 		s.log.Println("connection accepted")
 

@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	growOutPath = "internal/storage/config/fetcher/files/listing_grow_out.yaml"
+	filePath = "internal/storage/file/world_of_wisdom.txt"
 )
 
 var ErrEmptyStorage = errors.New("storage is empty")
@@ -22,7 +22,7 @@ func NewQuoteStorage() (QuoteStorage, error) {
 		return nil, fmt.Errorf("failed to get root path, details %w", err)
 	}
 
-	path := fmt.Sprintf("%s/%s", root, growOutPath)
+	path := fmt.Sprintf("%s/%s", root, filePath)
 
 	file, err := os.Open(path)
 	if err != nil {
