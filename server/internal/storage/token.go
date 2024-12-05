@@ -2,10 +2,11 @@ package storage
 
 import (
 	"errors"
-	"server/internal/service/entity"
 	"time"
 
 	"github.com/google/uuid"
+
+	"server/internal/service/entity"
 )
 
 var ErrNotFound = errors.New("token not found")
