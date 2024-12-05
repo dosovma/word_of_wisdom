@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-
 	"server/internal/service/entity"
 )
 
@@ -19,10 +18,10 @@ const (
 )
 
 const (
-	// masterKey : difficulty : requestID : requestTime : requestTimeout
+	// masterKey:requestID:requestTime:difficulty:requestTimeout
 	signatureRule = "%d:%d:%d:%d:%d"
 
-	// version : difficulty : requestID : requestTime : requestTimeout : requestSignature
+	// version:difficulty:requestID:requestTime:requestTimeout:requestSignature
 	challengeRule = "%d:%d:%d:%d:%d:%s"
 )
 
@@ -35,8 +34,9 @@ func (*Service) Challenge(r entity.Request) string {
 func sign(requestID, requestTime int64, difficulty int) (string, int64) {
 	hash := sha256.New()
 	reqTimeout := requestTime + timeout
+
 	if _, err := fmt.Fprintf(hash, signatureRule, masterKey, requestID, requestTime, difficulty, reqTimeout); err != nil {
-		return "", 0 // TODO add error
+		return "", 0 // TODO add error and handling
 	}
 
 	return hex.EncodeToString(hash.Sum(nil)), reqTimeout

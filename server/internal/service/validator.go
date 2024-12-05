@@ -4,11 +4,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
+	"server/internal/service/entity"
 	"strconv"
 	"strings"
 	"time"
-
-	"server/internal/service/entity"
 )
 
 type validationSpec struct {
@@ -38,6 +37,7 @@ func (s *Service) Validate(solution string) bool {
 	spec.challenge = challenge
 
 	var validations []func() bool
+
 	switch spec.version {
 	case v1:
 		validations = []func() bool{
@@ -107,6 +107,7 @@ func (vp *validationSpec) nonceValidator() bool {
 	if _, err := fmt.Fprintf(hash, "%s%d", vp.challenge, vp.nonce); err != nil {
 		return false // TODO add error
 	}
+
 	res := hex.EncodeToString(hash.Sum(nil))
 
 	return res[:vp.difficulty] == strings.Repeat("0", vp.difficulty)

@@ -1,21 +1,21 @@
 package app
 
 import (
-	"context"
-	"fmt"
-	"log"
-	"math/rand"
-	"net"
-	"os"
-	"time"
-
 	"client/internal/infrastructure/client"
 	"client/internal/service"
 	"client/internal/service/solver"
 	"client/pkg/tcp"
+	"context"
+	"fmt"
+	"log"
+	"math/rand/v2"
+	"net"
+	"os"
+	"time"
 )
 
 const (
+	ServerHost = "127.0.0.1"
 	ServerPort = ":9000"
 )
 
@@ -28,7 +28,7 @@ func Run() error {
 
 	logger := log.New(os.Stdout, "client:", log.LstdFlags)
 
-	conn, err := net.Dial("tcp", ServerPort)
+	conn, err := net.Dial("tcp4", ServerHost+ServerPort)
 	if err != nil {
 		logger.Printf("failed to dial server: %s", err)
 
@@ -38,6 +38,7 @@ func Run() error {
 		if err := conn.Close(); err != nil {
 			log.Printf("failed to close connection: %s", err)
 		}
+
 		log.Println("connection closed")
 	}(conn)
 
@@ -50,10 +51,7 @@ func Run() error {
 }
 
 func testRequest(s service.IService) error {
-	id := rand.Int63n(100000)
-	t := time.Now().Unix()
-
-	quote, err := s.Quote(id, t)
+	quote, err := s.Quote(rand.Int64N(100500), time.Now().Unix()) //nolint:gosec,mnd
 	if err != nil {
 		return err
 	}

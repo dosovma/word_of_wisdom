@@ -3,11 +3,12 @@
 Test task for Server Engineer
 
 Design and implement “Word of Wisdom” tcp server.
+
 - TCP server should be protected from DDOS attacks with the Proof of Work (https://en.wikipedia.org/wiki/Proof_of_work),
-the challenge-response protocol should be used.
+  the challenge-response protocol should be used.
 - The choice of the POW algorithm should be explained.
 - After Proof Of Work verification, server should send one of the quotes from “word of wisdom” book or any other
-collection of the quotes.
+  collection of the quotes.
 - Docker file should be provided both for the server and for the client that solves the POW challenge
 
 ### Prerequisites
@@ -17,7 +18,7 @@ Installed Docker https://docs.docker.com/engine/install/
 ### Local launch
 
 - git clone https://github.com/dosovma/word_of_wisdom.git
-- docker-compose build
+- docker compose build
 - docker compose up
 
 You will see logs and quote from world of wisdom.
@@ -69,15 +70,22 @@ Getting random quote is 7 steps process:
 
 7 - Server validates token; and a random quote is sent to Client.
 
+#### Code decisions that might be unclear
+
+- MasterKey. I decided to use it to ensure server stateless. It's seemed to me as a good alternative of storing have
+  gotten requests in database.
+- Insufficient unit tests. It takes a time, so I wrote a few test to show that I am skilled in that.
+- Message format. It's just for fun and to structure client-server communication. Please, don't be rigorous.
+
 #### Message format
 
 Each message has a predefined format.
 
 ```text
-"START:"
-"X-Command":[CommandType]
-Payload
-"END:"
+    "START:"
+    "X-Command":[CommandType]
+    Payload
+    "END:"
 ```
 
 Payload consists of strings with headers:
@@ -90,14 +98,6 @@ Payload consists of strings with headers:
 	"X-Request-id:"
 	"X-Request-time:"
 ```
-
-It's just for fun and to structure client-server communication. Please, don't be rigorous.
-
-#### Code decisions that might be unclear
-
-- MasterKey. I decided to use it to ensure server stateless. It's seemed to me as a good alternative of storing have
-  gotten requests in database.
-- Insufficient unit tests. It takes a time, so I wrote a few test to show that I am skilled in that.
 
 #### Features that I implemented in real work
 
@@ -118,7 +118,6 @@ It's just for fun and to structure client-server communication. Please, don't be
 - Move /pkg and const that describes message format to a separate github repository; make it public; and start using it
   as `go get github/.../tcp_communicator` in Client and Server.
 - Move a few const to envs: default difficulty, masterKey, timeout.
-- Add linter
-- CI/CD setting like github actions (tests + linter)
 - Add entity annotation
-- Read and write data into connection using []byte instead of strings. Strings make code more readable, but we shouldn't use it in production.  
+- Read and write data into connection using []byte instead of strings. Strings make code more readable, but we shouldn't
+  use it in production.  

@@ -1,11 +1,10 @@
 package service
 
 import (
+	"server/internal/service/entity"
 	"time"
 
 	"github.com/google/uuid"
-
-	"server/internal/service/entity"
 )
 
 const ExpiryTime = 1 * 60 * 60 // 1 час // TODO set by envs

@@ -2,12 +2,7 @@ package tcp
 
 import (
 	"net"
-
 	"server/pkg/logger"
-)
-
-const (
-	ServerPort = ":9000"
 )
 
 type Server struct {
@@ -27,7 +22,7 @@ func NewServer(host string, port string, handler *Handler, logger logger.Logger)
 }
 
 func (s *Server) Serve() error {
-	listener, err := net.Listen("tcp", ServerPort)
+	listener, err := net.Listen("tcp4", s.host+s.port)
 	if err != nil {
 		s.log.Println(err)
 		return err
@@ -46,6 +41,7 @@ func (s *Server) Serve() error {
 		if err != nil {
 			s.log.Printf("failed to accept connection: %s", err)
 		}
+
 		s.log.Println("connection accepted")
 
 		go s.handler.Handle(conn)

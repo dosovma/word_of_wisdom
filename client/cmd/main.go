@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	"client/internal/app"
+	"log"
 )
 
 func main() {

@@ -1,0 +1,12 @@
+name: world_of_wisdom
+
+services:
+  server:
+    build: server/
+    command: go run ./cmd/main.go
+  client:
+    build: client/
+    command: ./cmd/main.go
+    network_mode: "service:server"
+    depends_on:
+      - server

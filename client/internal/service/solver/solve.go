@@ -1,17 +1,17 @@
 package solver
 
 import (
+	"client/pkg/logger"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"math/rand"
+	"log"
+	"math/rand/v2"
 	"strconv"
 	"strings"
 	"time"
-
-	"client/pkg/logger"
 )
 
 const defaultRandomNonce = 1000000
@@ -59,11 +59,16 @@ func (*Solv) Solve(challenge string) (string, error) {
 }
 
 func findNonce(challenge string, difficulty int) int64 {
-	nonce := rand.Intn(defaultRandomNonce)
+	nonce := rand.IntN(defaultRandomNonce) //nolint:gosec
 
 	for {
 		h := sha256.New()
-		h.Write([]byte(challenge + strconv.Itoa(nonce)))
+		if _, err := h.Write([]byte(challenge + strconv.Itoa(nonce))); err != nil {
+			log.Println(err)
+
+			continue // TODO error handling
+		}
+
 		hash := hex.EncodeToString(h.Sum(nil))
 
 		if hash[:difficulty] == strings.Repeat("0", difficulty) {
@@ -71,6 +76,7 @@ func findNonce(challenge string, difficulty int) int64 {
 		}
 
 		h.Reset()
+
 		nonce++
 	}
 }

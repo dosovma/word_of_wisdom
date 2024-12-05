@@ -2,6 +2,9 @@ PWD := $(PWD)
 export PATH := $(PWD)/bin:$(PATH)
 export GOFLAGS := -mod=mod
 
+lint:
+	golangci-lint run --fix --config ./.golangci.yml ./...
+
 mock: mock
 	find ./internal -type d -name "*mock*" | xargs rm -dfR
 	find ./pkg -type d -name "*mock*" | xargs rm -dfR

@@ -15,7 +15,3 @@ type Request struct {
 	ID        int64
 	CreatedAt int64
 }
-
-func GenerateToken() uuid.UUID {
-	return uuid.New()
-}

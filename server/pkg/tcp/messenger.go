@@ -5,9 +5,8 @@ import (
 	"errors"
 	"io"
 	"net"
-	"strings"
-
 	"server/pkg/logger"
+	"strings"
 )
 
 var (
@@ -32,7 +31,7 @@ func NewMessenger(logger logger.Logger, messageStart string, messageEnd string, 
 }
 
 func (m *Messenger) Write(conn net.Conn, messages []string) error {
-	message := make([]string, 0, len(messages)+2)
+	message := make([]string, 0, len(messages)+2) //nolint:mnd
 	message = append(message, m.messageStart)
 	message = append(message, messages...)
 	message = append(message, m.messageEnd)

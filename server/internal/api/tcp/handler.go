@@ -2,15 +2,14 @@ package tcp
 
 import (
 	"net"
-	"strconv"
-	"time"
-
-	"github.com/google/uuid"
-
 	"server/internal/service"
 	"server/internal/service/entity"
 	"server/pkg/logger"
 	"server/pkg/tcp"
+	"strconv"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type tokenStorage interface {
@@ -44,90 +43,102 @@ func (h *Handler) Handle(conn net.Conn) {
 		if err := conn.Close(); err != nil {
 			h.log.Printf("failed to close connection: %s\n", err)
 		}
+
 		h.log.Println("connection closed")
 	}(conn)
 
 	for {
-		h.log.Println("start handling")
-
 		msg, err := h.m.Read(conn)
 		if err != nil {
 			h.log.Println("failed to read message")
-			return // write error
-		}
 
-		h.log.Println("message read")
+			return // TODO add error handling
+		}
 
 		cmd, err := tcp.GetDataByHeader(Command, msg)
 		if err != nil {
 			h.log.Println("failed to read command")
+
 			return
 		}
 
 		switch cmd {
 		case CmdToken:
-			h.log.Println("got token request")
-
-			request, err := extractRequest(msg)
-			if err != nil {
-				h.log.Println("failed to get request header")
-
-				return
-			}
-
-			challenge := h.service.Challenge(*request)
-
-			if err = h.m.Write(conn, []string{Challenge + challenge}); err != nil {
-				h.log.Println("failed to send challenge")
-				return //
-			}
-			h.log.Println("challenge sent")
+			h.processToken(conn, msg)
 		case CmdSolution:
-			h.log.Println("got validation request")
-
-			solution, err := tcp.GetDataByHeader(Solution, msg)
-			if err != nil {
-				h.log.Println("failed to get solution header")
-				return
-			}
-
-			if isGranted := h.service.Validate(solution); !isGranted {
-				if err = h.m.Write(conn, []string{Access + "Reject"}); err != nil {
-					return
-				}
-
-				continue
-			}
-
-			token := h.service.Token()
-
-			if err = h.m.Write(conn, []string{Token + token.String()}); err != nil {
-				h.log.Println("failed to send token")
-				return
-			}
+			h.processSolution(conn, msg)
 		case CmdQuote:
-			h.log.Println("got quote request")
+			h.processQuote(conn, msg)
 
-			if h.Auth(msg) {
-				q, err := h.service.Quote()
-				if err != nil {
-					h.log.Println("failed to get quote from service")
-					return //
-				}
+			h.log.Println("quote sent")
 
-				if err = h.m.Write(conn, []string{Quote + q}); err != nil {
-					h.log.Println("failed to send quote")
-
-					return
-				}
-
-				return // close connection
-			}
-
-			if err = h.m.Write(conn, []string{Access + "Reject"}); err != nil {
-				return
-			}
+			return
+		default:
+			h.log.Println("unknown command header")
 		}
+	}
+}
+
+func (h *Handler) processToken(conn net.Conn, msg []string) {
+	request, err := extractRequest(msg)
+	if err != nil {
+		h.log.Println("failed to get request header")
+
+		return
+	}
+
+	challenge := h.service.Challenge(*request)
+
+	if err = h.m.Write(conn, []string{Challenge + challenge}); err != nil {
+		h.log.Println("failed to send challenge")
+
+		return
+	}
+}
+
+func (h *Handler) processSolution(conn net.Conn, msg []string) {
+	solution, err := tcp.GetDataByHeader(Solution, msg)
+	if err != nil {
+		h.log.Println("failed to get solution header")
+
+		return
+	}
+
+	if isGranted := h.service.Validate(solution); !isGranted {
+		if err = h.m.Write(conn, []string{Access + "Reject"}); err != nil {
+			return
+		}
+
+		return
+	}
+
+	token := h.service.Token()
+
+	if err = h.m.Write(conn, []string{Token + token.String()}); err != nil {
+		h.log.Println("failed to send token")
+
+		return
+	}
+}
+
+func (h *Handler) processQuote(conn net.Conn, msg []string) {
+	if h.Auth(msg) {
+		q, err := h.service.Quote()
+		if err != nil {
+			h.log.Println("failed to get quote from service")
+
+			return
+		}
+
+		if err = h.m.Write(conn, []string{Quote + q}); err != nil {
+			h.log.Println("failed to send quote")
+
+			return
+		}
+	}
+
+	if err := h.m.Write(conn, []string{Access + "Reject"}); err != nil {
+		return
 	}
 }
 

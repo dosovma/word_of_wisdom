@@ -1,9 +1,8 @@
 package client
 
 import (
-	"net"
-
 	"client/pkg/logger"
+	"net"
 )
 
 //go:generate mockgen -destination=./mock/messenger.go -package=mock . Messenger

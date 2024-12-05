@@ -4,11 +4,11 @@ import (
 	"context"
 	"log"
 	"os"
-
 	"server/internal/api/tcp"
 	"server/internal/config"
 	"server/internal/service"
 	"server/internal/storage"
+
 	messenger "server/pkg/tcp"
 )
 
@@ -27,6 +27,7 @@ func Run() error {
 	}
 
 	tokenStorage := storage.NewTokenStorage()
+
 	quoteStorage, err := storage.NewQuoteStorage()
 	if err != nil {
 		logger.Printf("failed to init quote storage: %s", err)
