@@ -12,7 +12,7 @@ defaults:
 
 jobs:
   client-test:
-    name: test
+    name: client
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -33,7 +33,7 @@ jobs:
         run: go test -v ./... -count=1
 
   server-test:
-    name: test
+    name: server
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Go
-        uses: actions/setup-go@v4
+        uses: actions/setup-go@v5
         with:
           go-version: '1.23'
 
