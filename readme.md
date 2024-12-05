@@ -74,7 +74,7 @@ Getting random quote is 7 steps process:
 
 - MasterKey. I decided to use it to ensure server stateless. It's seemed to me as a good alternative of storing have
   gotten requests in database.
-- Insufficient unit tests. It takes a time, so I wrote a few test to show that I am skilled in that.
+- Insufficient number of unit tests. It takes a time, so I wrote a few test to show that I am skilled in that.
 - Message format. It's just for fun and to structure client-server communication. Please, don't be rigorous.
 
 #### Message format
@@ -99,7 +99,7 @@ Payload consists of strings with headers:
 	"X-Request-time:"
 ```
 
-#### Features that I implemented in real work
+#### Features that I would implement in real work
 
 - To couple server load with difficulty. It provides evenly distribution of requests.
 - Use hash tree https://www.mdpi.com/1999-4893/16/10/462 Merkle tree https://en.wikipedia.org/wiki/Merkle_tree to access
