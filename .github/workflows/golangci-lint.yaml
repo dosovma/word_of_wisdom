@@ -25,7 +25,6 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           working-directory: client
-          args: --config=/server/.golangci.yml
           version: latest
 
   server-golangci:
@@ -40,5 +39,4 @@ jobs:
         uses: golangci/golangci-lint-action@v6
         with:
           working-directory: server
-          args: --config=/server/.golangci.yml
           version: latest
