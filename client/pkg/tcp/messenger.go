@@ -2,11 +2,12 @@ package tcp
 
 import (
 	"bufio"
-	"client/pkg/logger"
 	"errors"
 	"io"
 	"net"
 	"strings"
+
+	"client/pkg/logger"
 )
 
 var (

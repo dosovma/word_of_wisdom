@@ -1,9 +1,9 @@
 package service
 
 import (
-	"server/internal/service/entity"
-
 	"github.com/google/uuid"
+
+	"server/internal/service/entity"
 )
 
 // input interface

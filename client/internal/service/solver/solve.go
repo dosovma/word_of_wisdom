@@ -1,7 +1,6 @@
 package solver
 
 import (
-	"client/pkg/logger"
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
@@ -12,6 +11,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"client/pkg/logger"
 )
 
 const defaultRandomNonce = 1000000

@@ -1,10 +1,6 @@
 package app
 
 import (
-	"client/internal/infrastructure/client"
-	"client/internal/service"
-	"client/internal/service/solver"
-	"client/pkg/tcp"
 	"context"
 	"fmt"
 	"log"
@@ -12,6 +8,11 @@ import (
 	"net"
 	"os"
 	"time"
+
+	"client/internal/infrastructure/client"
+	"client/internal/service"
+	"client/internal/service/solver"
+	"client/pkg/tcp"
 )
 
 const (

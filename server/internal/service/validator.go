@@ -4,10 +4,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"server/internal/service/entity"
 	"strconv"
 	"strings"
 	"time"
+
+	"server/internal/service/entity"
 )
 
 type validationSpec struct {

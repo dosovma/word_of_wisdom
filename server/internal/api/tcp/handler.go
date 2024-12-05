@@ -2,14 +2,15 @@ package tcp
 
 import (
 	"net"
-	"server/internal/service"
-	"server/internal/service/entity"
-	"server/pkg/logger"
-	"server/pkg/tcp"
 	"strconv"
 	"time"
 
 	"github.com/google/uuid"
+
+	"server/internal/service"
+	"server/internal/service/entity"
+	"server/pkg/logger"
+	"server/pkg/tcp"
 )
 
 type tokenStorage interface {
