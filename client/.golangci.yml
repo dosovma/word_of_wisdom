@@ -79,7 +79,6 @@ linters:
     - testpackage
     - nolintlint
     - noctx
-    - gofumpt
     - dupl
     - goheader
     - depguard
@@ -91,7 +90,6 @@ linters:
     - nolintlint
     - noctx
     - tparallel
-    #- forbidigo
     - makezero
   fast: false
   disable-all: true
@@ -108,7 +106,6 @@ issues:
         - wsl
         - funlen
         - goerr113
-        - gofumpt
     - text: "Errors unhandled"
       linters:
         - gosec
