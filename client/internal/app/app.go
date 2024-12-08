@@ -43,9 +43,9 @@ func Run() error {
 		log.Println("connection closed")
 	}(conn)
 
-	m := tcp.NewMessenger(logger, client.MessageStart, client.MessageEnd, client.MessageSizeLimit)
+	connRW := tcp.NewConnectionRW(logger, client.MessageStart, client.MessageEnd, client.MessageSizeLimit)
 
-	c := client.NewTCPClient(conn, m, logger)
+	c := client.NewTCPClient(conn, connRW, logger)
 	slvr := solver.New(logger)
 
 	return testRequest(service.NewService(c, slvr))

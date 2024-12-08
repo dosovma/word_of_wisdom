@@ -13,9 +13,9 @@ const (
 )
 
 const (
-	masterKey  = 2           // TODO set by envs
-	difficulty = 5           // TODO set by envs
-	timeout    = 1 * 60 * 60 // 1 час // TODO set by envs
+	masterKey        = 2           // TODO set by envs
+	difficulty       = 5           // TODO set by envs
+	challengeTimeout = 1 * 60 * 60 // 1 час // TODO set by envs
 )
 
 const (
@@ -34,7 +34,7 @@ func (*Service) Challenge(r entity.Request) string {
 
 func sign(requestID, requestTime int64, difficulty int) (string, int64) {
 	hash := sha256.New()
-	reqTimeout := requestTime + timeout
+	reqTimeout := requestTime + challengeTimeout
 
 	if _, err := fmt.Fprintf(hash, signatureRule, masterKey, requestID, requestTime, difficulty, reqTimeout); err != nil {
 		return "", 0 // TODO add error and handling

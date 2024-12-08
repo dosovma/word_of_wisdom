@@ -105,19 +105,17 @@ Payload consists of strings with headers:
 - Use hash tree https://www.mdpi.com/1999-4893/16/10/462 Merkle tree https://en.wikipedia.org/wiki/Merkle_tree to access
   to multiple quotes
 - Do a refactor of mapping challenge and solution strings into structure (new entity).
-- Add graceful degradation in Client and Server sides: default value for errors from the other side.
+- Add graceful degradation in Client and Server: return default value for errors from the other side.
 - Increase test coverage
 - Implement Retry logic in case failure of writing data
 - Improve error handling: add more data, use a context
 - Add auth token invalidation logic
-- Close connection when challenge has been sent to client. Client will have to open new connection after challenge will
-  have been solved.
+- Implement handling a closed connection issue in client: now, when server closed connection due to timeout, client attempts to write data to closed connection.   
 - Add shutdown logic to Server
-- Use a context to perform read and write timeouts
+- Use a context to perform read and write timeouts in client.
 - Do access denied logic. I skipped this case in project on purpose.
 - Move /pkg and const that describes message format to a separate github repository; make it public; and start using it
   as `go get github/.../tcp_communicator` in Client and Server.
 - Move a few const to envs: default difficulty, masterKey, timeout.
-- Add entity annotation
 - Read and write data into connection using []byte instead of strings. Strings make code more readable, but we shouldn't
   use it in production.  

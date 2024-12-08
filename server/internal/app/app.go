@@ -36,11 +36,11 @@ func Run() error {
 
 	s := service.New(quoteStorage, tokenStorage, logger)
 
-	m := messenger.NewMessenger(logger, tcp.MessageStart, tcp.MessageEnd, tcp.MessageSizeLimit)
+	connRW := messenger.NewConnectionRW(logger, tcp.MessageStart, tcp.MessageEnd, tcp.MessageSizeLimit)
 
-	handler := tcp.NewHandler(s, tokenStorage, m, logger)
+	handler := tcp.NewHandler(s, tokenStorage, connRW, logger)
 
-	tcpServer := tcp.NewServer(cfg.Host, cfg.Port, handler, logger)
+	tcpServer := tcp.NewServer(cfg.Host, cfg.Port, cfg.Timeout, handler, logger)
 	logger.Println("server init")
 
 	return tcpServer.Serve()

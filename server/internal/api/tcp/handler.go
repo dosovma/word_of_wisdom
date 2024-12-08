@@ -1,6 +1,7 @@
 package tcp
 
 import (
+	"context"
 	"net"
 	"strconv"
 	"time"
@@ -18,28 +19,28 @@ type tokenStorage interface {
 	Store(entity.Token)
 }
 
-type messenger interface {
+type connectionReaderWriter interface {
 	Write(conn net.Conn, messages []string) error
 	Read(conn net.Conn) ([]string, error)
 }
 
-type Handler struct {
-	service service.IService
-	m       messenger
-	auth    tokenStorage
-	log     logger.Logger
+type HandlerTCP struct {
+	service      service.IService
+	connRW       connectionReaderWriter
+	tokenStorage tokenStorage
+	log          logger.Logger
 }
 
-func NewHandler(service service.IService, storage tokenStorage, m messenger, log logger.Logger) *Handler {
-	return &Handler{
-		service: service,
-		auth:    storage,
-		log:     log,
-		m:       m,
+func NewHandler(service service.IService, storage tokenStorage, connRW connectionReaderWriter, log logger.Logger) *HandlerTCP {
+	return &HandlerTCP{
+		service:      service,
+		tokenStorage: storage,
+		log:          log,
+		connRW:       connRW,
 	}
 }
 
-func (h *Handler) Handle(conn net.Conn) {
+func (h *HandlerTCP) Handle(ctx context.Context, conn net.Conn) {
 	defer func(conn net.Conn) {
 		if err := conn.Close(); err != nil {
 			h.log.Printf("failed to close connection: %s\n", err)
@@ -48,39 +49,57 @@ func (h *Handler) Handle(conn net.Conn) {
 		h.log.Println("connection closed")
 	}(conn)
 
+	done := make(chan bool, 1)
+	defer close(done)
+
 	for {
-		msg, err := h.m.Read(conn)
-		if err != nil {
-			h.log.Println("failed to read message")
-
-			return // TODO add error handling
-		}
-
-		cmd, err := tcp.GetDataByHeader(Command, msg)
-		if err != nil {
-			h.log.Println("failed to read command")
+		select {
+		case <-ctx.Done():
+			h.log.Printf("timeout connection exceeded")
 
 			return
-		}
-
-		switch cmd {
-		case CmdToken:
-			h.processToken(conn, msg)
-		case CmdSolution:
-			h.processSolution(conn, msg)
-		case CmdQuote:
-			h.processQuote(conn, msg)
-
-			h.log.Println("quote sent")
-
+		case <-done:
 			return
 		default:
-			h.log.Println("unknown command header")
+			h.processMessage(done, conn)
 		}
 	}
 }
 
-func (h *Handler) processToken(conn net.Conn, msg []string) {
+func (h *HandlerTCP) processMessage(done chan bool, conn net.Conn) {
+	msg, err := h.connRW.Read(conn)
+	if err != nil {
+		h.log.Println("failed to read message")
+
+		return // TODO add error handling
+	}
+
+	cmd, err := tcp.GetDataByHeader(Command, msg)
+	if err != nil {
+		h.log.Println("failed to read command")
+
+		return
+	}
+
+	switch cmd {
+	case CmdToken:
+		h.processToken(conn, msg)
+	case CmdSolution:
+		h.processSolution(conn, msg)
+	case CmdQuote:
+		h.processQuote(conn, msg)
+
+		h.log.Println("quote sent")
+
+		done <- true
+
+		return
+	default:
+		h.log.Println("unknown command header")
+	}
+}
+
+func (h *HandlerTCP) processToken(conn net.Conn, msg []string) {
 	request, err := extractRequest(msg)
 	if err != nil {
 		h.log.Println("failed to get request header")
@@ -90,14 +109,14 @@ func (h *Handler) processToken(conn net.Conn, msg []string) {
 
 	challenge := h.service.Challenge(*request)
 
-	if err = h.m.Write(conn, []string{Challenge + challenge}); err != nil {
+	if err = h.connRW.Write(conn, []string{Challenge + challenge}); err != nil {
 		h.log.Println("failed to send challenge")
 
 		return
 	}
 }
 
-func (h *Handler) processSolution(conn net.Conn, msg []string) {
+func (h *HandlerTCP) processSolution(conn net.Conn, msg []string) {
 	solution, err := tcp.GetDataByHeader(Solution, msg)
 	if err != nil {
 		h.log.Println("failed to get solution header")
@@ -106,7 +125,7 @@ func (h *Handler) processSolution(conn net.Conn, msg []string) {
 	}
 
 	if isGranted := h.service.Validate(solution); !isGranted {
-		if err = h.m.Write(conn, []string{Access + "Reject"}); err != nil {
+		if err = h.connRW.Write(conn, []string{Access + "Reject"}); err != nil {
 			return
 		}
 
@@ -115,15 +134,15 @@ func (h *Handler) processSolution(conn net.Conn, msg []string) {
 
 	token := h.service.Token()
 
-	if err = h.m.Write(conn, []string{Token + token.String()}); err != nil {
+	if err = h.connRW.Write(conn, []string{Token + token.String()}); err != nil {
 		h.log.Println("failed to send token")
 
 		return
 	}
 }
 
-func (h *Handler) processQuote(conn net.Conn, msg []string) {
-	if h.Auth(msg) {
+func (h *HandlerTCP) processQuote(conn net.Conn, msg []string) {
+	if h.isAuth(msg) {
 		q, err := h.service.Quote()
 		if err != nil {
 			h.log.Println("failed to get quote from service")
@@ -131,14 +150,14 @@ func (h *Handler) processQuote(conn net.Conn, msg []string) {
 			return
 		}
 
-		if err = h.m.Write(conn, []string{Quote + q}); err != nil {
+		if err = h.connRW.Write(conn, []string{Quote + q}); err != nil {
 			h.log.Println("failed to send quote")
 
 			return
 		}
 	}
 
-	if err := h.m.Write(conn, []string{Access + "Reject"}); err != nil {
+	if err := h.connRW.Write(conn, []string{Access + "Reject"}); err != nil {
 		return
 	}
 }
@@ -170,7 +189,7 @@ func extractRequest(request []string) (*entity.Request, error) {
 	}, nil
 }
 
-func (h *Handler) Auth(messages []string) bool {
+func (h *HandlerTCP) isAuth(messages []string) bool {
 	tokenStr, err := tcp.GetDataByHeader(Token, messages)
 	if err != nil {
 		return false
@@ -181,7 +200,7 @@ func (h *Handler) Auth(messages []string) bool {
 		return false
 	}
 
-	token, err := h.auth.Token(tokenID)
+	token, err := h.tokenStorage.Token(tokenID)
 	if err != nil {
 		h.log.Printf("failed to get token: %s", err)
 

@@ -7,8 +7,9 @@ import (
 )
 
 type Config struct {
-	Host string `envconfig:"SERVER_HOST" default:"127.0.0.1"`
-	Port string `envconfig:"SERVER_PORT" default:":9000"`
+	Host    string `envconfig:"SERVER_HOST" default:"127.0.0.1"`
+	Port    string `envconfig:"SERVER_PORT" default:":9000"`
+	Timeout int    `envconfig:"SERVER_TIMEOUT" default:"5"`
 }
 
 func NewServer() (*Config, error) {

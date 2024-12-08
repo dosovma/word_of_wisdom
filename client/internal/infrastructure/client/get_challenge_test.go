@@ -12,6 +12,9 @@ import (
 )
 
 func TestClient_GetChallenge(t *testing.T) {
+	conn, _ := net.Pipe()
+	defer conn.Close()
+
 	type args struct {
 		requestID   string
 		requestTime string
@@ -19,7 +22,7 @@ func TestClient_GetChallenge(t *testing.T) {
 	tests := []struct {
 		name      string
 		args      args
-		mockCalls func(net.Conn, *mock.MockMessenger, *loggerMock.MockLogger)
+		mockCalls func(net.Conn, *mock.MockConnectionReaderWriter, *loggerMock.MockLogger)
 		want      string
 		wantErr   bool
 	}{
@@ -29,7 +32,7 @@ func TestClient_GetChallenge(t *testing.T) {
 				requestID:   "123456",
 				requestTime: "1732456988",
 			},
-			mockCalls: func(conn net.Conn, messenger *mock.MockMessenger, logger *loggerMock.MockLogger) {
+			mockCalls: func(conn net.Conn, messenger *mock.MockConnectionReaderWriter, logger *loggerMock.MockLogger) {
 				data := []string{"X-Command:Token", "X-Request-id:123456", "X-Request-time:1732456988"}
 
 				gomock.InOrder(
@@ -49,7 +52,7 @@ func TestClient_GetChallenge(t *testing.T) {
 				requestID:   "123456",
 				requestTime: "1732456988",
 			},
-			mockCalls: func(conn net.Conn, messenger *mock.MockMessenger, logger *loggerMock.MockLogger) {
+			mockCalls: func(conn net.Conn, messenger *mock.MockConnectionReaderWriter, logger *loggerMock.MockLogger) {
 				data := []string{"X-Command:Token", "X-Request-id:123456", "X-Request-time:1732456988"}
 
 				gomock.InOrder(
@@ -65,15 +68,12 @@ func TestClient_GetChallenge(t *testing.T) {
 	}
 	for _, tt := range tests {
 		ctrl := gomock.NewController(t)
-		messenger := mock.NewMockMessenger(ctrl)
+		connRW := mock.NewMockConnectionReaderWriter(ctrl)
 		log := loggerMock.NewMockLogger(ctrl)
 
-		conn, _ := net.Pipe()
-		defer conn.Close()
+		c := client.NewTCPClient(conn, connRW, log)
 
-		c := client.NewTCPClient(conn, messenger, log)
-
-		tt.mockCalls(conn, messenger, log)
+		tt.mockCalls(conn, connRW, log)
 
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := c.GetChallenge(tt.args.requestID, tt.args.requestTime)

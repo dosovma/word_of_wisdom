@@ -26,10 +26,10 @@ func TestService_Challenge(t *testing.T) {
 			args: args{
 				r: entity.Request{
 					ID:        123456,
-					CreatedAt: time.Date(2024, 12, 5, 10, 10, 0, 0, time.UTC).Unix(),
+					CreatedAt: time.Date(2024, 12, 8, 20, 10, 0, 0, time.UTC).Unix(),
 				},
 			},
-			want: "1:5:123456:1733393400:1733397000:5c06f48d5f94ccee414ee1513a4bd75f4d89e50eac01ff45705339cff2b5148a",
+			want: "1:5:123456:1733688600:1733692200:4bd53e4e5b3a974baf8bc7446457cf6c0f67918ad59dd86eef4b16243a7392e3",
 		},
 	}
 	for _, tt := range tests {

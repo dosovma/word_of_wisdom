@@ -1,22 +1,30 @@
 package tcp
 
 import (
+	"context"
 	"net"
+	"time"
 
 	"server/pkg/logger"
 )
 
+type Handler interface {
+	Handle(ctx context.Context, conn net.Conn)
+}
+
 type Server struct {
 	host    string
 	port    string
-	handler *Handler
+	timeout int
+	handler Handler
 	log     logger.Logger
 }
 
-func NewServer(host string, port string, handler *Handler, logger logger.Logger) *Server {
+func NewServer(host string, port string, timeout int, handler Handler, logger logger.Logger) *Server {
 	return &Server{
 		host:    host,
 		port:    port,
+		timeout: timeout,
 		handler: handler,
 		log:     logger,
 	}
@@ -45,6 +53,13 @@ func (s *Server) Serve() error {
 
 		s.log.Println("connection accepted")
 
-		go s.handler.Handle(conn)
+		go s.processConnection(conn)
 	}
+}
+
+func (s *Server) processConnection(conn net.Conn) {
+	ctx, cancel := context.WithTimeout(context.TODO(), time.Second*time.Duration(s.timeout))
+	defer cancel()
+
+	s.handler.Handle(ctx, conn)
 }
